@@ -1,0 +1,34 @@
+.I 1
+.W
+ What articles exist which deal with TSS (Time Sharing System), an
+operating system for IBM computers?
+.N
+ 1. Richard Alexander, Comp Serv, Langmuir Lab (TSS)
+
+.I 2
+.W
+ I am interested in articles written either by Prieve or Udo Pooch
+.A
+Prieve, B.
+Pooch, U.
+.N
+ 2. Richard Alexander, Comp Serv, Langmuir Lab (author = Pooch or Prieve)
+
+.I 3
+.W
+ Intermediate languages used in construction of multi-targeted compilers; TCOLL
+.N
+ 3. Donna Bergmark, Comp Serv, Uris Hall (intermed lang)
+
+.I 10
+.W
+Parallel languages; languages for parallel computation
+.N
+10. Alec Grimison, Comp Serv, Uris Hall (parallel lang)
+
+.I 14
+.W
+ find all discussions of optimal implementations of sort algorithms for
+database management applications
+.N
+ 14. Kenneth Wilson, Physics, Newman Lab (sort for database)
