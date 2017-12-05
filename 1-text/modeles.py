@@ -52,6 +52,8 @@ class TfidfWeighter(Weighter):
         return docFreq
 
     def getWeightsForQuery(self, query):
+        """
+        :param query: dict representing the query: {stem:frequence}"""
         docsID = self.index.getDocsID()
         N = len(docsID)
         
@@ -91,7 +93,10 @@ class Vectoriel(IRmodel):
         self.norms = {}
 
 
-    def getScores(self, query, normalized):
+    def getScores(self, query, normalized=True):
+        """
+        :param query: dict {stem: frequence}
+        :return: a dict {docID: score}"""
         docsID = self.index.getDocsID()
         scores = {}
         for i in docsID:

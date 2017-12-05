@@ -3,10 +3,15 @@
 
 import query
 import numpy as np
+import itertools as it
+import TextRepresenter
 
 class IRList():
     """ Contains a query and the scores found for this query """
     def __init__(self, query, scores):
+        """ Create new IRList
+        :param query: The Query object
+        :param scores: a list of tuples [(docId, score)]"""
         self.query = query
         self.scores = scores # List [(docId, score)]
 
@@ -23,6 +28,8 @@ class EvalMeasure:
         self.irlist = irlist
 
     def getRelevantResults(self):
+        """ Return the relevant results for the query in the
+        IRList object"""
         # The relevant results of the query are the ones that have
         # a score higher than mean:
         mean = np.mean([score for (docId, score) in self.irlist.getScores()])
@@ -39,8 +46,11 @@ class PrecisionRecallMeasure(EvalMeasure):
     def __init__(self, irlist):
         super().__init__(irlist)
 
-    def eval(self, verbose=False, size=11):
-        """ 
+    def eval(self, verbose=False, nbLevel=11):
+        """ Compute the recall and precision for an IRList
+        :param verbose: bool, whether or not to display messages
+        :param nbLevel: int, optional (default is 11). The number of 
+        (precision, recall) values to compute
         :return: A sorted list of (recall, precision)"""
         rec_prec = {}
         # Truely relevant results for the query:
@@ -68,7 +78,7 @@ class PrecisionRecallMeasure(EvalMeasure):
 
         results = []
         keys = list(rec_prec.keys())
-        for recall in np.linspace(0, 1, size):
+        for recall in np.linspace(0, 1, nbLevel):
             # Find the closest point to recall
             idx = np.argmin(list(map(lambda n:np.abs(n-recall), keys)))
             # print("Closest recall to %f is %f" % (recall, keys[idx]))
@@ -85,9 +95,12 @@ class AveragePrecision(EvalMeasure):
         super().__init__(irlist)
 
     def eval(self, verbose=False, step=1):
-        """
+        """ Compute the performance of a model.
+        :param step: int, optional (default is 1). 
+            The step used to iterate over all results.
+            (Lets the evaluation skip some results to evaluate faster)
         :return: The average precision at different ranks"""
-        mean = 0
+        s = 0 # The sum of precisions. 
         # Truely relevant results for the query:
         trueRels = list(self.irlist.getQuery().getRelevants().keys())
         # Results we found for the query:
@@ -111,20 +124,37 @@ class AveragePrecision(EvalMeasure):
                 prec = 0
             if verbose:
                 print("%5d|%4d | %5f" % (i, relevantFound, prec))
-            mean += prec
+            s += prec
 
-        return mean/len(trueRels)
+        return s/len(trueRels)
 
 class EvalIRModel():
-    def __init__(self, queries, irmodels, evals):
+    def __init__(self, queries, irmodels, measures, stemmer=TextRepresenter.PorterStemmer()):
         """
-        :param queries: List of Query object
+        :param queries: List of Query objects
         :param irmodels: dictionary of {name:IRmodel object}
-        :param evals: dictionary of {name:EvalMeasure object}"""
+        :param evals: dictionary of {name:EvalMeasure class}"""
         self.queries = queries
         self.irmodels = irmodels
-        self.evals = evals
+        self.measures = measures
+        self.stemmer = stemmer
 
     def eval(self):
-        pass
+        print("irmodel, measure, mean(score)")
+        all_query_scores = []
+            
+        for irmodel_name, irmodel in self.irmodels.items():
+            print("IRModel:", irmodel_name)
+            for q in self.queries:
+                print("Retrieve scores for query #" + q.getID())
+                q_scores = irmodel.getScores(self.stemmer.
+                            getTextRepresentation(q.getText()))
+                all_query_scores.append(list(q_scores.items()))
+            for measure_name, measure_class in self.measures.items():
+                print("Measure:", measure_name)
+                eval_scores = []
+                for q_scores in all_query_scores:
+                    measure = measure_class(IRList(q, q_scores))
+                    eval_scores.append(measure.eval())
+                print(irmodel_name, measure_name, eval_scores)
 
