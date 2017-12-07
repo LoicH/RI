@@ -15,11 +15,12 @@ public class VisualIndexes {
 		List<STrainingSample<double[], String>> testSamples  = new ArrayList<STrainingSample<double[], String>>();
 		// TODO Remove magic number: 800 = number of training samples
 		int threshold = 800;
-		for (String filename : filenames){
-			System.out.println("Retrieving features from "+filename);
+		for (String path : filenames){
+			System.out.println("Retrieving features from "+path);
+			String filename = path.substring(path.lastIndexOf('/')+1, path.lastIndexOf('.'));
 			int i = 0;
 			try {
-				List<ImageFeatures> featuresList = ImageNetParser.getFeatures(filename);
+				List<ImageFeatures> featuresList = ImageNetParser.getFeatures(path);
 				for (ImageFeatures feat : featuresList){
 					double[] bow = VIndexFactory.computeBow(feat);
 					//TODO Remove .txt from filename
