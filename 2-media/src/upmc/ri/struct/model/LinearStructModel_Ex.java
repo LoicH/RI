@@ -5,6 +5,9 @@ import upmc.ri.utils.VectorOperations;
 
 public class LinearStructModel_Ex<X, Y> extends LinearStructModel<X, Y> {
 
+	/** Constructor
+	 * @param dimpsi The size of the parameters vector.
+	 */
 	public LinearStructModel_Ex(int dimpsi) {
 		super(dimpsi);
 	}
