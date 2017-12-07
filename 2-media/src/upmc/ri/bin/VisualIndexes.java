@@ -19,7 +19,7 @@ public class VisualIndexes {
 			System.out.println("Retrieving features from "+filename);
 			int i = 0;
 			try {
-				List<ImageFeatures> featuresList = ImageNetParser.getFeatures(filename);
+				List<ImageFeatures> featuresList = ImageNetParser.getFeatures(filenameÀMODIFIER);
 				for (ImageFeatures feat : featuresList){
 					double[] bow = VIndexFactory.computeBow(feat);
 					//TODO Remove .txt from filename
