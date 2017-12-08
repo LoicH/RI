@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.TreeMap;
 
 import upmc.ri.struct.STrainingSample;
+import upmc.ri.struct.ranking.RankingFunctions;
 import upmc.ri.struct.ranking.RankingOutput;
 import upmc.ri.utils.VectorOperations;
 
@@ -17,17 +18,7 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 	}
 
 	@Override
-	public RankingOutput predict(List<double[]> x) {
-		// TODO 
-//		List orderedList = new ArrayList(x.size());
-//		for (double[] x1 : x){
-//			double val = VectorOperations.dot(super.getParameters(), x1);
-//			orderedList.add(val);
-//		}
-//		Collections.sort(orderedList);
-//		RankingOutput ranking = new RankingOutput(0, orderedList, orderedList);
-//		getPositionningFromRanking
-		
+	public RankingOutput predict(List<double[]> x) {	
 		// Create map of 'input -> score'
 		TreeMap<double[], Float> map = new TreeMap<double[], Float>();
 		List<Integer> labelsGT = new ArrayList<Integer>();
@@ -50,8 +41,6 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 				labelsGT.add(-1);
 			}
 		}
-		
-		
 		// Sort 'listX' with keys from 'map'
 		Collections.sort(listIdx, new Comparator<Integer>() {
 			@Override
@@ -63,17 +52,13 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 					return 1;
 				}			}
 		});
-		
-		
 		RankingOutput result = new RankingOutput(nbPlus, listIdx, labelsGT);
 		return result;
-		
 	}
 
 	@Override
 	public RankingOutput lai(STrainingSample<List<double[]>, RankingOutput> ts) {
-		// TODO Auto-generated method stub
-		return null;
+		return RankingFunctions.loss_augmented_inference(ts, this.getParameters());
 	}
 	
 
