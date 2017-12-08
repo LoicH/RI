@@ -10,7 +10,7 @@ public class MultiClassHier extends MultiClass{
 	public MultiClassHier() {
 		super();
 		RelatednessCalculator rc = new WuPalmer(new NictWordNet());
-		
+		this.distances = new double[this.getSet().size()][this.getSet().size()];
 		int index_line;
 		int index_column;
 		for(String y1: this.getSet()) {

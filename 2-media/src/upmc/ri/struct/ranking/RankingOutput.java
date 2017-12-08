@@ -20,6 +20,16 @@ public class RankingOutput {
 	private int nbPlus; 
 	
 
+	/** Create a new ranking
+	 * @param nbPlus Number of elements in wanted class 
+	 * 		(typically, elements having a positive scalar product with parameter)
+	 * @param ranking list of indexes sorted by score.
+	 * 		Ex: [2, 0, 1] means element n°2 is the best and n°1 is the worst
+	 * @param labelsGT Positive/negative labels of elements.
+	 * 		Ex: [+, -, +] means elements n°0 and 2 are in the wanted class.
+	 * 		
+	 * Warning: labelsGT corresponds to the original ordering of elements whereas ranking is a new ordering
+	 */
 	public RankingOutput(int nbPlus , List<Integer> ranking , List<Integer> labelsGT){
 		this.nbPlus = nbPlus;
 		this.ranking = ranking; 

@@ -25,7 +25,7 @@ public class MultiClassClassif {
 	    //================================================================================
 		// Data set
 		System.out.println("Loading data");
-		String path = "/home/sebastien/data_science/DAC/Master_DAC/RI/ri_image/data";
+		String path = "/home/sebastien/data_science/DAC/Master_DAC/RI/RI/2-media/data";
 		List<String> files = Arrays.asList(path+"/tree-frog.txt", path+"/harp.txt",path+"/minivan.txt", 
 				path+"/taxi.txt", path+"/acoustic_guitar.txt", path+"/ambulance.txt", 
 				path+"/electric_guitar.txt", path+"/european_fire_salamander.txt", path+"/wood-frog.txt" ); 
@@ -33,7 +33,7 @@ public class MultiClassClassif {
 		// Learning hyper parameters
 		float lambda = (float) Math.pow(10,-6);
 		float gama = (float) Math.pow(10,-2);
-		int iterations = 100;
+		int iterations = 10;
 
 		//================================================================================
 	    // 0/1 model

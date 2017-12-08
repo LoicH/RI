@@ -40,10 +40,11 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 		for(int t = 0; t<this.iterations; t++){
 			System.out.println("Iteration "+ t);
 			for(int i = 0; i<N; i++){
-				if (i%1000 == 0) {
-					System.out.println(i + "/" + N);
-					System.out.println("Convex loss:" + convex_loss(lts, model));
-				}
+				
+//				if (i%1000 == 0) {
+//					System.out.println(i + "/" + N);
+//					System.out.println("Convex loss:" + convex_loss(lts, model));
+//				}
 				// Choose random sample
 				STrainingSample<X, Y> ts = lts.get(generator.nextInt(N));
 				// Compute y_hat
