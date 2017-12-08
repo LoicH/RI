@@ -12,15 +12,15 @@ import upmc.ri.utils.VectorOperations;
 public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 	
 	private Evaluator<X, Y> eval ;
-	
 	private int iterations;
 	private double gradStep;
 	private double lambda;
 
-	public SGDTrainer(int iterations, double gradStep, double lambda) {
+	public SGDTrainer(int iterations, double gradStep, double lambda,Evaluator<X, Y> eval) {
 		this.iterations = iterations;
 		this.gradStep = gradStep;
 		this.lambda = lambda;
+		this.eval = eval;
 	}
 
 	
@@ -30,7 +30,6 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 		this.eval.setListtrain(lts);
 		this.eval.setModel(model);
 		
-		// Init w
 		//TODO check if w is a pointer
 		double[] w = model.getParameters();
 		Arrays.fill(w, 0);
@@ -61,17 +60,14 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 				}
 				model.setParameters(w);
 			}
+			
 			this.eval.evaluateTrain();
 			System.out.println("Train error:"+this.eval.getErr_train());
 			
-			/*this.eval.evaluate();
-			System.out.println("Train error:"+this.eval.getErr_train());
-			System.out.println("Test error:"+this.eval.getErr_test());
-			*/
-
+//			this.eval.evaluate();
+//			System.out.println("Train error:"+this.eval.getErr_train());
+//			System.out.println("Test error:"+this.eval.getErr_test());
 		}
-		
-		
 	}
 	
 	public double convex_loss(List<STrainingSample<X, Y>> lts, IStructModel<X, Y> model){
@@ -89,8 +85,11 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 			tmp -= VectorOperations.dot(psi, w);
 			P += 1.0/N * tmp;
 		}
-		
 		return P;
+	}
+	
+	public void setEval(Evaluator<X, Y> eval) {
+		this.eval = eval;
 	}
 
 }

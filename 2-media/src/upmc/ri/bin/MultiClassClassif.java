@@ -50,7 +50,8 @@ public class MultiClassClassif {
 		evaluator.setModel(model);
 				
 		// TODO print the right Errors in SGDTrain.train (Evaluator.evaluate)
-		ITrainer<double[],String> trainer = new SGDTrainer<double[],String>(iterations, gama, lambda);
+		ITrainer<double[],String> trainer = new SGDTrainer<double[],String>(iterations, gama, lambda, evaluator);
+		
 		trainer.train(dataset.getTrain(), model);
 		
 		// Inference and evaluation (Confusion Matrix)
@@ -84,7 +85,7 @@ public class MultiClassClassif {
 		
 		evaluator.setModel(modelHier);
 		// Here we evaluate on the HierDelta with params learned on HierDelta
-		ITrainer<double[],String> trainerHier = new SGDTrainer<double[],String>(iterations, gama, lambda);
+		ITrainer<double[],String> trainerHier = new SGDTrainer<double[],String>(iterations, gama, lambda, evaluator);
 		trainerHier.train(dataset.getTrain(), modelHier);
 		
 		// Here we evaluate on the 0/1 with params learned on HierDelta
