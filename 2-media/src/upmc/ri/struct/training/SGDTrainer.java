@@ -16,7 +16,7 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 	private int iterations;
 	private double gradStep;
 	private double lambda;
-	
+
 	public SGDTrainer(int iterations, double gradStep, double lambda) {
 		this.iterations = iterations;
 		this.gradStep = gradStep;
@@ -62,6 +62,11 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 			}
 			this.eval.evaluateTrain();
 			System.out.println("Train error:"+this.eval.getErr_train());
+			
+			/*this.eval.evaluate();
+			System.out.println("Train error:"+this.eval.getErr_train());
+			System.out.println("Test error:"+this.eval.getErr_test());
+			*/
 
 		}
 		

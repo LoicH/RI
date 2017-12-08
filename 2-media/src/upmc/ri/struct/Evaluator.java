@@ -15,7 +15,7 @@ public class Evaluator<X,Y> {
 	private List<Y> pred_test;
 	private double err_train;
 	private double err_test;
-	
+
 //	public Evaluator(List<STrainingSample<X,Y>> lts, List<STrainingSample<X,Y>>  ltt, IStructModel<X,Y> m){
 //		this.listtrain = lts;
 //		this.listtest  = ltt;
