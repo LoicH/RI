@@ -16,6 +16,7 @@ class IRList():
         self.scores = scores # List [(docId, score)]
 
     def getQuery(self):
+        """ Return the Query object"""
         return self.query
 
     def getScores(self):
@@ -28,14 +29,15 @@ class EvalMeasure:
         self.irlist = irlist
 
     def getRelevantResults(self):
-        """ Return the relevant results for the query in the
+        """ Return the <100 relevant results for the query in the
         IRList object"""
         # The relevant results of the query are the ones that have
         # a score higher than mean:
         mean = np.mean([score for (docId, score) in self.irlist.getScores()])
         relevantResults = [docId for (docId, score) in self.irlist.getScores()
-                          if score > mean]
-        return relevantResults
+                          #if score > mean
+                        ]
+        return relevantResults[:]
 
     def eval(self):
         raise NotImplementedError("Abstract method")
@@ -57,17 +59,21 @@ class PrecisionRecallMeasure(EvalMeasure):
         trueRels = list(self.irlist.getQuery().getRelevants().keys())
         # Results we found for the query:
         results = super().getRelevantResults()
-
+        trueRelsLen = len(trueRels)        
+        
         if verbose:
             print("This query has %d relevant results" 
                 % len(trueRels))
             # print("Scores for this query:", self.irlist.getScores())
             print("   i |found| precision | recall")
-        for i in range(1, len(results)):
+        i = 1
+        relevantFound = 0.
+        while i<len(results) and relevantFound<trueRelsLen:
             # Number of results we found that are really relevant:
-            relevantFound = len(np.intersect1d(results[:i], trueRels))
+            if int(results[i-1]) in trueRels:
+                relevantFound += 1
             prec = relevantFound/i
-            rec = relevantFound/len(trueRels)
+            rec = relevantFound/trueRelsLen
             if verbose:
                 print("%5d|%4d | %5f  |%5f" % (i, relevantFound, prec, rec))
 
@@ -75,6 +81,7 @@ class PrecisionRecallMeasure(EvalMeasure):
                 rec_prec[rec] = prec
             elif prec > rec_prec[rec]:
                 rec_prec[rec] = prec
+            i +=1
 
         results = []
         keys = list(rec_prec.keys())
@@ -94,11 +101,8 @@ class AveragePrecision(EvalMeasure):
     def __init__(self, irlist):
         super().__init__(irlist)
 
-    def eval(self, verbose=False, step=1):
+    def eval(self, verbose=False):
         """ Compute the performance of a model.
-        :param step: int, optional (default is 1). 
-            The step used to iterate over all results.
-            (Lets the evaluation skip some results to evaluate faster)
         :return: The average precision at different ranks"""
         s = 0 # The sum of precisions. 
         # Truely relevant results for the query:
@@ -109,27 +113,29 @@ class AveragePrecision(EvalMeasure):
         if verbose:
             print("This query has %d relevant results" 
                 % len(trueRels))
+            print(trueRels)
             # print("Scores for this query:", self.irlist.getScores())
             print("   i |found| precision")
-        for i in range(1, len(results), step):
-            # Number of results we found that are really relevant:
-            relevantFound = len(np.intersect1d(results[:i], trueRels))
-            # print("Doc at rank %d is %s." % (i, results[i-1]))
-            # print("doc in trueRels:", results[i-1] in trueRels)
+            
+        i = 1
+        relevantFound = 0
+        while i<len(results) and relevantFound<len(trueRels):
+            prec = 0
             if int(results[i-1]) in trueRels:
-                # if verbose:
-                    # print("Document at rank %d is relevant" % i)
+                # Number of results we found that are really relevant:
+                relevantFound = len(np.intersect1d(results[:i], trueRels))
                 prec = relevantFound/i
-            else:
-                prec = 0
-            if verbose:
-                print("%5d|%4d | %5f" % (i, relevantFound, prec))
-            s += prec
-
+                s += prec
+                if verbose:
+                    print("%5d|%4d | %5f" % (i, relevantFound, prec))
+            elif verbose:
+                print(results[i-1] + " not in trueRels")
+            i += 1
         return s/len(trueRels)
 
 class EvalIRModel():
-    def __init__(self, queries, irmodels, measures, stemmer=TextRepresenter.PorterStemmer()):
+    def __init__(self, queries, irmodels, measures, 
+                 stemmer=TextRepresenter.PorterStemmer()):
         """
         :param queries: List of Query objects
         :param irmodels: dictionary of {name:IRmodel object}
@@ -141,20 +147,25 @@ class EvalIRModel():
 
     def eval(self):
         print("irmodel, measure, mean(score)")
-        all_query_scores = []
-            
+        all_query_scores = {}
+        results = {}
         for irmodel_name, irmodel in self.irmodels.items():
             print("IRModel:", irmodel_name)
             for q in self.queries:
-                print("Retrieve scores for query #" + q.getID())
                 q_scores = irmodel.getScores(self.stemmer.
                             getTextRepresentation(q.getText()))
-                all_query_scores.append(list(q_scores.items()))
+                all_query_scores[q] = (list(q_scores.items()))
+                
             for measure_name, measure_class in self.measures.items():
                 print("Measure:", measure_name)
                 eval_scores = []
-                for q_scores in all_query_scores:
+                for q, q_scores in all_query_scores.items():
+                    print(20 * '-')
                     measure = measure_class(IRList(q, q_scores))
-                    eval_scores.append(measure.eval())
-                print(irmodel_name, measure_name, eval_scores)
-
+                    tmp_score = measure.eval(verbose=True)
+                    print(q, tmp_score)
+                    eval_scores.append(tmp_score)
+                    print(20 * '-')
+                print(eval_scores)
+                results[(irmodel_name, measure_name)] = (np.mean(eval_scores), np.std(eval_scores))
+        return results

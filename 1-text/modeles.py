@@ -99,9 +99,9 @@ class Vectoriel(IRmodel):
         :return: a dict {docID: score}"""
         docsID = self.index.getDocsID()
         scores = {}
+        queryWeights = self.weighter.getWeightsForQuery(query)
         for i in docsID:
             docWeights = self.weighter.getDocWeightsForDoc(i)
-            queryWeights = self.weighter.getWeightsForQuery(query)
             score = IRmodel.dictProduct(docWeights,
                                         queryWeights)
             norm = 1
@@ -113,7 +113,7 @@ class Vectoriel(IRmodel):
                     self.norms[i] = norm
                 norm *= IRmodel.dictNorm(queryWeights)
 
-            scores[i] = score/norm
+                scores[i] = score/norm
         return scores
 
     def getRanking(self, query):
