@@ -1,9 +1,7 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import query
 import numpy as np
-import itertools as it
 import TextRepresenter
 
 class IRList():
@@ -33,8 +31,9 @@ class EvalMeasure:
         IRList object"""
         # The relevant results of the query are the ones that have
         # a score higher than mean:
-        mean = np.mean([score for (docId, score) in self.irlist.getScores()])
-        relevantResults = [docId for (docId, score) in self.irlist.getScores()
+        #mean = np.mean([score for (docId, score) in self.irlist.getScores()])
+        sortRes = sorted(self.irlist.getScores(), key=lambda tupl:tupl[1], reverse=True)
+        relevantResults = [docId for (docId, score) in sortRes
                           #if score > mean
                         ]
         return relevantResults[:]
@@ -113,7 +112,6 @@ class AveragePrecision(EvalMeasure):
         if verbose:
             print("This query has %d relevant results" 
                 % len(trueRels))
-            print(trueRels)
             # print("Scores for this query:", self.irlist.getScores())
             print("   i |found| precision")
             
@@ -145,27 +143,37 @@ class EvalIRModel():
         self.measures = measures
         self.stemmer = stemmer
 
-    def eval(self):
-        print("irmodel, measure, mean(score)")
+    def eval(self, verbose=False):
+        """ Compares different types of IR models and evaluation methods.
+        :return: A dictionary of {(s1, s2):(n1, n2)}
+                where 's1' is the name of the IR model
+                      's2' is the name of the evaluation method
+                      'n1' is the mean of scores over all queries
+                      'n2' is the standard deviation
+        """
         all_query_scores = {}
         results = {}
         for irmodel_name, irmodel in self.irmodels.items():
-            print("IRModel:", irmodel_name)
+            if verbose:
+                print("IRModel:", irmodel_name)
             for q in self.queries:
                 q_scores = irmodel.getScores(self.stemmer.
                             getTextRepresentation(q.getText()))
                 all_query_scores[q] = (list(q_scores.items()))
                 
             for measure_name, measure_class in self.measures.items():
-                print("Measure:", measure_name)
+                if verbose:
+                    print("Measure:", measure_name)
                 eval_scores = []
-                for q, q_scores in all_query_scores.items():
-                    print(20 * '-')
-                    measure = measure_class(IRList(q, q_scores))
-                    tmp_score = measure.eval(verbose=True)
-                    print(q, tmp_score)
+                for query, scores_list in all_query_scores.items():
+                    if verbose:
+                        print(20 * '-')
+                        print(query)
+                        print(scores_list[:10])
+                    measure = measure_class(IRList(query, scores_list))
+                    tmp_score = measure.eval(verbose=verbose)
+                    if verbose:
+                        print(tmp_score)
                     eval_scores.append(tmp_score)
-                    print(20 * '-')
-                print(eval_scores)
                 results[(irmodel_name, measure_name)] = (np.mean(eval_scores), np.std(eval_scores))
         return results
