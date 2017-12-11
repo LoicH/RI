@@ -72,12 +72,16 @@ class IRmodel():
         self.index = index
 
     def getScores(self, query, normalized):
-        """:param query: Dictionary of term frequencies"""
+        """
+        :param query: Dictionary of term frequencies        
+        :return: a dict {docID: score}"""
         raise NotImplementedError("Abstract method")
-
+    
     def getRanking(self, query):
-        """:param query: Dictionary of term frequencies"""
-        raise NotImplementedError("Abstract method")
+        """ Compute the of documents for the query
+        :return: A list of tuples (doc id, score) sorted by score """
+        scores = self.getScores(query, True)
+        return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
 
     def dictProduct(a,b):
         s = sum([a[i]*b[i] for i in a.keys() if i in b.keys()])
@@ -116,6 +120,62 @@ class Vectoriel(IRmodel):
                 scores[i] = score/norm
         return scores
 
-    def getRanking(self, query):
-        scores = self.getScores(query, True)
-        return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
+
+
+class LanguageModel(IRmodel):
+    def __init__(self, index, txt_repr, regularization):
+        """ Create a new unigram model.
+        :param index: The Index object that parsed all files
+        :param txt_repr: a TextRepresenter object
+        :param regularization: The regularization parameter to avoid having 
+        a null probability because of an unkown word.
+        """
+        super().__init__(index)
+        self.txt_repr = txt_repr
+        self.reg = regularization
+        self.model_corpus = None
+        # TODO: cache document models with a queue
+       # self.models = {}
+    
+    def get_model_corpus(self):
+        """ Return the unigram model for the entire collection, and create
+        it if the model is not already computed.
+        """ 
+        if self.model_corpus is None:
+            self.model_corpus = {}
+            collec_length = 0
+            for stem in self.index.getStems():
+                term_freq_dic = self.index.getTfsForStem(stem)
+                freq = sum(term_freq_dic.values())
+                collec_length += freq
+                self.model_corpus[stem] = freq
+                
+            for stem in self.model_corpus:
+                self.model_corpus[stem] /= collec_length
+            
+        return self.model_corpus
+    
+    def score(self, query, doc_id):
+        """ Compute the likelihood of a query inside a document. 
+        :param query: The Query object
+        :param doc: int or string, the ID of the document 
+        :return: float, the likelihood a the query inside the document.
+        May be -inf if a word of the query isn't found in the entire collection.
+        """
+        doc_model = self.index.getTfsForDoc(doc_id)
+        self.get_model_corpus()
+        doc_len = sum(doc_model.values())
+        doc_model = {s:tf/doc_len for s,tf in doc_model.items()}
+        score = 0
+        query_repr = self.txt_repr.getTextRepresentation(query.getText())
+        for word, q_freq in query_repr.items():
+            if word in doc_model:
+                in_log = self.reg * doc_model[word] + (1-self.reg) * self.model_corpus[word]
+#                print("in log:", in_log)
+                score += q_freq * np.log(in_log)
+            else:
+                score = -np.infty
+                break
+        return score
+        
+    

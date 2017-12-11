@@ -4,8 +4,6 @@
 @author: Loïc Herbelot
 """
 
-import ParserCACM
-import TextRepresenter
 import os
 
 class Index(object):
@@ -18,11 +16,11 @@ class Index(object):
             stored under [directory]/[name]_{index, inverted}
         :param out_dir: Where to save the index.
         """
-        # The name of the index
+        # The name of the index
         self.name = name
-        # The path to the index file
+        # The path to the index file
         self.indexPath = os.path.join(out_dir, self.name + "_index.txt")
-        # The path to the inverted index file
+        # The path to the inverted index file
         self.invertedPath = os.path.join(out_dir, self.name + "_inverted.txt")
         # Dictionary {doc: (position in index, len of representation)} 
         self.docs = {}
@@ -136,7 +134,7 @@ class Index(object):
             lenToAdd = len(addRepr) 
             self.stems[stem]["len"] += lenToAdd
             
-        else:  # Or add the new stem:
+        else:  # Or add the new stem:
             addRepr = stem + '{' + docId + ':' + str(freq) + '}\n'
             lenToAdd = len(addRepr)
             self.stems[stem] = {"pos": -1,
@@ -146,7 +144,7 @@ class Index(object):
         """ Return the stems found inside a document, with their
         frequency.
         
-        :param docId: The identifier for the wanted document
+        :param docId: The identifier for the wanted document (may be int or string)
         
         :return: a dictionary of {string(stem): int(frequency)}"""
         
@@ -196,6 +194,15 @@ class Index(object):
         return txt
 
     def getDocsID(self):
+        """
+        :return: list of string, the list of all known documents.
+        """
         return list(self.docs.keys())
+        
+    def getStems(self):
+        """ Return the entire vocabulary of the collection 
+        :return: list of string, the list of all known words.
+        """
+        return list(self.stems.keys())
 
 

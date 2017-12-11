@@ -71,11 +71,14 @@ class PrecisionRecallMeasure(EvalMeasure):
             # Number of results we found that are really relevant:
             if int(results[i-1]) in trueRels:
                 relevantFound += 1
+
             prec = relevantFound/i
             rec = relevantFound/trueRelsLen
-            if verbose:
+            
+            if verbose and int(results[i-1]) in trueRels:
                 print("%5d|%4d | %5f  |%5f" % (i, relevantFound, prec, rec))
-
+            
+            
             if rec not in rec_prec.keys():
                 rec_prec[rec] = prec
             elif prec > rec_prec[rec]:
@@ -126,8 +129,8 @@ class AveragePrecision(EvalMeasure):
                 s += prec
                 if verbose:
                     print("%5d|%4d | %5f" % (i, relevantFound, prec))
-            elif verbose:
-                print(results[i-1] + " not in trueRels")
+#            elif verbose:
+#                print(results[i-1] + " not in trueRels")
             i += 1
         return s/len(trueRels)
 
