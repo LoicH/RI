@@ -122,13 +122,14 @@ class Vectoriel(IRmodel):
 
 
 
-class LanguageModel(IRmodel):
-    def __init__(self, index, txt_repr, regularization):
+class UnigramLanguage(IRmodel):
+    def __init__(self, index, txt_repr, regularization=1):
         """ Create a new unigram model.
         :param index: The Index object that parsed all files
         :param txt_repr: a TextRepresenter object
         :param regularization: The regularization parameter to avoid having 
         a null probability because of an unkown word.
+        :param args: Dictionary of {string:param}
         """
         super().__init__(index)
         self.txt_repr = txt_repr
@@ -169,13 +170,44 @@ class LanguageModel(IRmodel):
         score = 0
         query_repr = self.txt_repr.getTextRepresentation(query.getText())
         for word, q_freq in query_repr.items():
+            in_log = (1-self.reg) * self.model_corpus[word]
             if word in doc_model:
-                in_log = self.reg * doc_model[word] + (1-self.reg) * self.model_corpus[word]
-#                print("in log:", in_log)
-                score += q_freq * np.log(in_log)
-            else:
-                score = -np.infty
-                break
+                in_log += self.reg * doc_model[word]
+#            print("in log:", in_log)
+            score += q_freq * np.log(in_log)
+#            else:
+#                score = -np.infty
+#                break
         return score
         
-    
+class Okapi(IRmodel):
+    def __init__(self, index, txt_repr, k=1, b=1):
+        super().__init__(index)
+        self.txt_repr = txt_repr
+        self.k = k
+        self.b = b
+
+    def get_params(self):
+        return {"txt_repr":self.txt_repr,
+                "k":self.k,
+                "b":self.b}
+        
+    def score(self, query, doc_id):
+        s = 0
+        docStems = self.index.getTfsForDoc(doc_id)
+        docLen = sum(docStems.values())        
+        meanDocLen = self.index.getMeanDocLen()
+        
+        for word in self.txt_repr.getTextRepresentation(query.getText()).keys():
+            if word in docStems:
+                tf = docStems[word]
+            else:
+                tf = 0
+            numer = (self.k+1) * tf
+            denom = self.k * ((1-self.b) + self.b*docLen/meanDocLen) + tf
+            s += self.index.probIdf(word) * numer / denom
+#            if tf == 0:
+#                print("%s not in doc" % word)
+#            else:
+#                print("word=%s, tf=%d, numer=%.3f, den=%.3f" % (word, tf, numer, denom))
+        return s

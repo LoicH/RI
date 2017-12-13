@@ -5,6 +5,7 @@
 """
 
 import os
+import numpy as np
 
 class Index(object):
     """ Stores word frequencies among documents """
@@ -30,6 +31,7 @@ class Index(object):
         # Dict {int(doc): string("source path;position in source;text length")}
         self.docFrom = {}
         
+        self.meanDocLen = None
         
     def indexation(self, corpus, parser, txtRepr):
         """ Create the indexes.
@@ -184,6 +186,16 @@ class Index(object):
         docFreq = {int(docId):int(freq) for (docId, freq) in docFreq}
         return docFreq
         
+    def probIdf(self, stem):
+        """ Return a variant of the IDF weight, the probabilistic IDF.
+        [see here: https://en.wikipedia.org/wiki/Tf%E2%80%93idf#Inverse_document_frequency_2] 
+        :param stem: string, the word.
+        :return: The probabilistic IDF weight.
+        """
+        N = len(self.docs)
+        nt = len(self.getTfsForStem(stem))
+        return max(0, np.log((N-nt+0.5)/(nt+0.5)))
+    
     def getStrDoc(self, doc):
         """ Return the string from where a document came in the 
         source file""" 
@@ -205,4 +217,19 @@ class Index(object):
         """
         return list(self.stems.keys())
 
+    def getDocsLen(self, doc_id):
+        """Return the number of words inside a document"""
+        stems = self.getTfsForDoc(doc_id)
+        length = sum(stems.values())
+        return length
+    
+    def getMeanDocLen(self):
+        if self.meanDocLen is None:
+            totalLen = 0
+            docsNumber = 0
+            for doc_id in self.getDocsID():
+                totalLen += self.getDocsLen(doc_id)
+                docsNumber += 1
+            self.meanDocLen = totalLen/docsNumber
+        return self.meanDocLen
 
