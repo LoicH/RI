@@ -123,7 +123,7 @@ class Vectoriel(IRmodel):
 
 
 class UnigramLanguage(IRmodel):
-    def __init__(self, index, txt_repr, regularization=1):
+    def __init__(self, index, regularization=1):
         """ Create a new unigram model.
         :param index: The Index object that parsed all files
         :param txt_repr: a TextRepresenter object
@@ -132,7 +132,6 @@ class UnigramLanguage(IRmodel):
         :param args: Dictionary of {string:param}
         """
         super().__init__(index)
-        self.txt_repr = txt_repr
         self.reg = regularization
         self.model_corpus = None
         # TODO: cache document models with a queue
@@ -168,8 +167,9 @@ class UnigramLanguage(IRmodel):
         doc_len = sum(doc_model.values())
         doc_model = {s:tf/doc_len for s,tf in doc_model.items()}
         score = 0
-        query_repr = self.txt_repr.getTextRepresentation(query.getText())
-        for word, q_freq in query_repr.items():
+        for word, q_freq in query.items():
+            if word not in self.model_corpus:
+                continue
             in_log = (1-self.reg) * self.model_corpus[word]
             if word in doc_model:
                 in_log += self.reg * doc_model[word]
@@ -179,11 +179,21 @@ class UnigramLanguage(IRmodel):
 #                score = -np.infty
 #                break
         return score
+    
+    def getScores(self, query, normalized=False):
+        scores = {}
+        norm = 0
+        for doc in self.index.getDocsID():
+            s = self.score(query, doc)   
+            scores[doc] = s
+            norm += s**2
+        scores = {k:v/np.sqrt(norm) for k,v in scores.items()}
+        
+        return scores
         
 class Okapi(IRmodel):
-    def __init__(self, index, txt_repr, k=1, b=1):
+    def __init__(self, index, k=1, b=1):
         super().__init__(index)
-        self.txt_repr = txt_repr
         self.k = k
         self.b = b
 
@@ -192,22 +202,37 @@ class Okapi(IRmodel):
                 "k":self.k,
                 "b":self.b}
         
-    def score(self, query, doc_id):
+    def score(self, query, doc_id, verbose=False):
         s = 0
         docStems = self.index.getTfsForDoc(doc_id)
         docLen = sum(docStems.values())        
         meanDocLen = self.index.getMeanDocLen()
-        
-        for word in self.txt_repr.getTextRepresentation(query.getText()).keys():
+        if verbose:
+            print("Doc", doc_id, "len=", docLen, "meanLean=", meanDocLen)
+        for word in query.keys():
             if word in docStems:
                 tf = docStems[word]
             else:
                 tf = 0
             numer = (self.k+1) * tf
             denom = self.k * ((1-self.b) + self.b*docLen/meanDocLen) + tf
-            s += self.index.probIdf(word) * numer / denom
+            w = self.index.probIdf(word) * numer / denom
+            if verbose:
+                print("weight for "+word+":", w)
+            s += w
 #            if tf == 0:
 #                print("%s not in doc" % word)
 #            else:
 #                print("word=%s, tf=%d, numer=%.3f, den=%.3f" % (word, tf, numer, denom))
         return s
+        
+    
+    def getScores(self, query, normalized=False):
+        scores = {}
+        norm = 0
+        for doc in self.index.getDocsID():
+            s = self.score(query, doc)   
+            scores[doc] = s
+            norm += s**2
+        scores = {k:v/np.sqrt(norm) for k,v in scores.items()}
+        return scores

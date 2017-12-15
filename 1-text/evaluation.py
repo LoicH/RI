@@ -146,7 +146,7 @@ class EvalIRModel():
         self.measures = measures
         self.stemmer = stemmer
 
-    def eval(self, verbose=False):
+    def eval(self, verbose=0):
         """ Compares different types of IR models and evaluation methods.
         :return: A dictionary of {(s1, s2):(n1, n2)}
                 where 's1' is the name of the IR model
@@ -169,14 +169,14 @@ class EvalIRModel():
                     print("Measure:", measure_name)
                 eval_scores = []
                 for query, scores_list in all_query_scores.items():
-                    if verbose:
+                    if verbose > 1:
                         print(20 * '-')
                         print(query)
                         print(scores_list[:10])
                     measure = measure_class(IRList(query, scores_list))
-                    tmp_score = measure.eval(verbose=verbose)
-                    if verbose:
-                        print(tmp_score)
+                    tmp_score = measure.eval(verbose=(verbose==2))
                     eval_scores.append(tmp_score)
+                if verbose:
+                    print((np.mean(eval_scores), np.std(eval_scores)))
                 results[(irmodel_name, measure_name)] = (np.mean(eval_scores), np.std(eval_scores))
         return results

@@ -6,6 +6,7 @@
 
 import os
 import numpy as np
+from scipy.sparse import dok_matrix
 
 class Index(object):
     """ Stores word frequencies among documents """
@@ -30,6 +31,8 @@ class Index(object):
         self.stems = {}
         # Dict {int(doc): string("source path;position in source;text length")}
         self.docFrom = {}
+        # sparse matrix, m[i,j] = 1 iff link from 'i' to 'j'
+        self.network = {}
         
         self.meanDocLen = None
         
@@ -70,14 +73,18 @@ class Index(object):
                 toWrite = title + '{'
                 toWrite += ','.join(docRepr) + '}\n'
                 self.docs[title] = (index.tell(), len(toWrite))
-                
                 index.write(toWrite)
+                
+                    
+                
                 doc = self.parser.nextDocument()
         
         
         # Build the inverted index
         print("2nd pass: build the inverted index...")
         self.parser.initFile(corpus) # Reset the parser 
+        self.network = dok_matrix((len(self.docs), len(self.docs)))
+        # Iterate over all documents:
         doc = self.parser.nextDocument()
         with open(self.invertedPath, "w+") as invIndex:
             while doc is not None:
@@ -87,6 +94,15 @@ class Index(object):
                             .getTextRepresentation(doc.getText()))
                 for stem, freq in stems.items():
                     self.writeStem(stem, title, freq, invIndex)
+                
+                # Parsing the link to build the network:
+                # doc.others['links'] is  '2\t5\t2;3\t5\t2;4\t5\t2;'
+                links = doc.others['links'].split(';') # list of strings
+                neighbours = [s.split()[0] for s in links if len(s) > 0]
+                for dest in np.unique(neighbours):
+                    if dest != title:
+                        self.network[int(title)-1, int(dest)-1] = 1
+                    
                 doc = self.parser.nextDocument()
         
         print("Finished.")
@@ -233,3 +249,14 @@ class Index(object):
             self.meanDocLen = totalLen/docsNumber
         return self.meanDocLen
 
+    def getSuccNodes(self, doc_id):
+        """
+        :return: List of ints of document ID
+        """
+        return np.array(self.network[int(doc_id)-1,:].nonzero()[1], dtype=int)+1
+        
+    def getPrevNodes(self, doc_id):
+        return np.array(self.network[:,int(doc_id)-1].nonzero()[0], dtype=int)+1
+    
+    
+        
