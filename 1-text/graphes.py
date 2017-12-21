@@ -35,7 +35,8 @@ class RandomSurfer():
         
     def getGraph(self):
         if self.graph is None:
-            self.graph = dok_matrix(len(self.index.getDocsID()))
+            nbDocs = len(self.index.getDocsID())
+            self.graph = dok_matrix((nbDocs, nbDocs))
             for docTitle in self.seeds:
                 self.addDoc(docTitle, addNew=True)
                 for prevTitle in np.random.choice(self.index.getPrevNodes(docTitle), 
@@ -47,8 +48,20 @@ class RandomSurfer():
 
 class PageRank(RandomSurfer):
     def __init__(self, index, seeds, prevNumber):
-        super().__init(index, seeds, prevNumber)
+        super().__init__(index, seeds, prevNumber)
     
+    def solve(self, nIter=100):
+        graph = self.getGraph().copy()
+        for i in np.unique(graph.nonzero()[0]):
+            s = (graph[i].sum())
+            for j in graph[i].nonzero()[1]:
+                graph[i,j] /= s
+        
+
+        u = np.zeros(graph.shape[0])
+        u[list(self.nodes)] = 1/(len(self.nodes))
+        eigenVect = u*(graph**nIter)
+        return {str(nodeId+1):eigenVect[nodeId] for nodeId in self.nodes}
     
 class HITS(RandomSurfer):
     def __init__(self, index, seeds, prevNumber):
