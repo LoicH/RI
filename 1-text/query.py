@@ -13,7 +13,7 @@ class Query():
         """
         :param queryID:
         :param text:
-        :param relevants: Dictionary {id: {"subtheme":int, "score":float}}
+        :param relevants: Dictionary {int (id): {"subtheme":int, "score":float}}
         """
         self.id = queryID
         self.text = text
@@ -26,6 +26,8 @@ class Query():
         return self.text
 
     def getRelevants(self):
+        """
+        :return: Dictionary of {int (doc id): {"subtheme":int, "score":float}}"""
         return self.relevants
 
     def setRelevants(self, rel):
@@ -33,7 +35,7 @@ class Query():
 
     def __str__(self):
         return ("Query {id="+self.id+", txt='"+self.text+
-                "', relevances="+str(list(self.relevants.keys()))+"}")
+                "', relevances="+str(sorted(list(self.relevants.keys())))+"}")
 
 
 class QueryParser:
@@ -43,7 +45,7 @@ class QueryParser:
        relevance file.
 
     A subclass must implement the following methods:
-    1) parseRelevData(self, data (string)) -> QueryObject
+    1) parseRelevData(self, data (string)) -> Query object
     2) parseQueryData(self, data (string)) -> dictionary of docs scores
 
     """

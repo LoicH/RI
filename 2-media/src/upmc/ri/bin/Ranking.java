@@ -18,7 +18,7 @@ public class Ranking {
 		// Learning hyper parameters
 		float lambda = (float) Math.pow(10,-6);
 		float gama = (float) Math.pow(10,1);
-		int iterations = 10;
+		int iterations = 2;
 				
 		System.out.println("Loading data");
 		String path = "/home/sebastien/data_science/DAC/Master_DAC/RI/RI/2-media/data";
@@ -32,7 +32,9 @@ public class Ranking {
 
 		RankingInstanciation instanceRanking = new RankingInstanciation();
 		int dimRanking = instanceRanking.getDim();
+		
 		RankingStructModel<List<double[]>,RankingOutput> modelRanking = new RankingStructModel<List<double[]>,RankingOutput>(dimRanking);
+		modelRanking.setInstance(instanceRanking);
 		
 		Evaluator<List<double[]>,RankingOutput> evaluator = new Evaluator<List<double[]>,RankingOutput>();
 		evaluator.setListtrain(datasetRanking.getTrain());
@@ -41,6 +43,7 @@ public class Ranking {
 		
 		SGDTrainer<List<double[]>,RankingOutput> trainer = new SGDTrainer<List<double[]>,RankingOutput>(iterations, gama, lambda, evaluator);
 		trainer.train(datasetRanking.getTrain(), modelRanking);
+		
 	}
 
 }

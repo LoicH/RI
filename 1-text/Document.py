@@ -11,7 +11,7 @@ class Document(object):
 
     def __init__(self,identifier,text="",others=None):
         """ Constructor 
-        :param identifier: unique identifier
+        :param identifier: string, unique identifier
         :param text: Usually 'title+author+kw+texte'
         :param other: Other informations, such as where to find this doc.
             In other["from"] you can find the source doc."""

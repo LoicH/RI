@@ -28,6 +28,8 @@ class Parser(object):
             #print str(self.file.closed)
     
     def nextDocument(self):
+        """ Return the next doc in the file
+        """
         #if((self.file is None) or (self.file.closed())):
         #    return None
         d=None

@@ -4,9 +4,9 @@
 @author: Loïc Herbelot
 """
 
-import ParserCACM
-import TextRepresenter
 import os
+import numpy as np
+from scipy.sparse import dok_matrix
 
 class Index(object):
     """ Stores word frequencies among documents """
@@ -18,11 +18,11 @@ class Index(object):
             stored under [directory]/[name]_{index, inverted}
         :param out_dir: Where to save the index.
         """
-        # The name of the index
+        # The name of the index
         self.name = name
-        # The path to the index file
+        # The path to the index file
         self.indexPath = os.path.join(out_dir, self.name + "_index.txt")
-        # The path to the inverted index file
+        # The path to the inverted index file
         self.invertedPath = os.path.join(out_dir, self.name + "_inverted.txt")
         # Dictionary {doc: (position in index, len of representation)} 
         self.docs = {}
@@ -31,7 +31,10 @@ class Index(object):
         self.stems = {}
         # Dict {int(doc): string("source path;position in source;text length")}
         self.docFrom = {}
+        # sparse matrix, m[i,j] = 1 iff link from 'i' to 'j'
+        self.network = {}
         
+        self.meanDocLen = None
         
     def indexation(self, corpus, parser, txtRepr):
         """ Create the indexes.
@@ -70,14 +73,18 @@ class Index(object):
                 toWrite = title + '{'
                 toWrite += ','.join(docRepr) + '}\n'
                 self.docs[title] = (index.tell(), len(toWrite))
-                
                 index.write(toWrite)
+                
+                    
+                
                 doc = self.parser.nextDocument()
         
         
         # Build the inverted index
         print("2nd pass: build the inverted index...")
         self.parser.initFile(corpus) # Reset the parser 
+        self.network = dok_matrix((len(self.docs), len(self.docs)))
+        # Iterate over all documents:
         doc = self.parser.nextDocument()
         with open(self.invertedPath, "w+") as invIndex:
             while doc is not None:
@@ -87,6 +94,15 @@ class Index(object):
                             .getTextRepresentation(doc.getText()))
                 for stem, freq in stems.items():
                     self.writeStem(stem, title, freq, invIndex)
+                
+                # Parsing the link to build the network:
+                # doc.others['links'] is  '2\t5\t2;3\t5\t2;4\t5\t2;'
+                links = doc.others['links'].split(';') # list of strings
+                neighbours = [s.split()[0] for s in links if len(s) > 0]
+                for dest in np.unique(neighbours):
+                    if dest != title:
+                        self.network[int(title)-1, int(dest)-1] = 1
+                    
                 doc = self.parser.nextDocument()
         
         print("Finished.")
@@ -136,7 +152,7 @@ class Index(object):
             lenToAdd = len(addRepr) 
             self.stems[stem]["len"] += lenToAdd
             
-        else:  # Or add the new stem:
+        else:  # Or add the new stem:
             addRepr = stem + '{' + docId + ':' + str(freq) + '}\n'
             lenToAdd = len(addRepr)
             self.stems[stem] = {"pos": -1,
@@ -146,7 +162,7 @@ class Index(object):
         """ Return the stems found inside a document, with their
         frequency.
         
-        :param docId: The identifier for the wanted document
+        :param docId: The identifier for the wanted document (may be int or string)
         
         :return: a dictionary of {string(stem): int(frequency)}"""
         
@@ -186,6 +202,16 @@ class Index(object):
         docFreq = {int(docId):int(freq) for (docId, freq) in docFreq}
         return docFreq
         
+    def probIdf(self, stem):
+        """ Return a variant of the IDF weight, the probabilistic IDF.
+        [see here: https://en.wikipedia.org/wiki/Tf%E2%80%93idf#Inverse_document_frequency_2] 
+        :param stem: string, the word.
+        :return: The probabilistic IDF weight.
+        """
+        N = len(self.docs)
+        nt = len(self.getTfsForStem(stem))
+        return max(0, np.log((N-nt+0.5)/(nt+0.5)))
+    
     def getStrDoc(self, doc):
         """ Return the string from where a document came in the 
         source file""" 
@@ -196,6 +222,41 @@ class Index(object):
         return txt
 
     def getDocsID(self):
+        """
+        :return: list of string, the list of all known documents.
+        """
         return list(self.docs.keys())
+        
+    def getStems(self):
+        """ Return the entire vocabulary of the collection 
+        :return: list of string, the list of all known words.
+        """
+        return list(self.stems.keys())
 
+    def getDocsLen(self, doc_id):
+        """Return the number of words inside a document"""
+        stems = self.getTfsForDoc(doc_id)
+        length = sum(stems.values())
+        return length
+    
+    def getMeanDocLen(self):
+        if self.meanDocLen is None:
+            totalLen = 0
+            docsNumber = 0
+            for doc_id in self.getDocsID():
+                totalLen += self.getDocsLen(doc_id)
+                docsNumber += 1
+            self.meanDocLen = totalLen/docsNumber
+        return self.meanDocLen
 
+    def getSuccNodes(self, doc_id):
+        """
+        :return: List of ints of document ID
+        """
+        return np.array(self.network[int(doc_id)-1,:].nonzero()[1], dtype=int)+1
+        
+    def getPrevNodes(self, doc_id):
+        return np.array(self.network[:,int(doc_id)-1].nonzero()[0], dtype=int)+1
+    
+    
+        

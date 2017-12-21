@@ -37,11 +37,9 @@ class PorterStemmer(TextRepresenter):
         self._setStopWords()
         
     def getTextRepresentation(self,text):
-        """
-        tab=re.findall(r"\w+",text,re.UNICODE)
-        tab=[i.lower() for i in tab]
-        ret=Counter(tab)
-        ret={porter.stem(a):b for (a,b) in ret.items()  if a not in self.stopWords}
+        """ Return the stemmed representation of a string.
+        :param text: string, input text
+        :return: dictionary of {stem: frequency}
         """
         
         tab=re.findall(r"\w+",text,re.UNICODE)

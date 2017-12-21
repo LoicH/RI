@@ -36,7 +36,35 @@ public class RankingOutput {
 		this.labelsGT = labelsGT;
 		
 	}
-	
+	public List<Integer> getPlus() {
+		
+		ArrayList<Integer> plus = new ArrayList<Integer>();
+		List<Integer> labels = this.getLabelsGT();
+		for (int i = 0; i < labels.size(); i++) {
+			if(labels.get(i) == 1) {
+				plus.add(i);
+			}
+		}
+		return plus;
+	}
+	public List<Integer> getMinus() {
+		ArrayList<Integer> minus = new ArrayList<Integer>();
+		List<Integer> labels = this.getLabelsGT();
+		for (int i = 0; i < labels.size(); i++) {
+			if(labels.get(i) == -1) {
+				minus.add(i);
+			} 
+		}
+		return minus;
+	}
+	public int isBefore(int i, int j) {
+		List<Integer> positionning = this.getPositionningFromRanking();
+		int result = -1;
+		if (positionning.get(i) < positionning.get(j)) {
+		result = 1;
+		}
+		return result;
+	}
 	@Override
 	public String toString() {
 		return "QueryOutput [ranking="

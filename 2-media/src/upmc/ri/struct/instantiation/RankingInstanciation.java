@@ -20,53 +20,20 @@ public class RankingInstanciation implements IStructInstantiation<List<double[]>
 	 * @return The feature map for the specific ranking problem (ie binary classification were class 1 is all wanted items and class B all others items)
 	 */
 	public double[] psi(List<double[]> x, RankingOutput y) {
-//		List<Integer> ranking = y.getRanking();
-//		int nbPlus = y.getNbPlus();
-//		
-//		double[] psi = new double[x.get(1).length];
-//		int yij;
-//		double[] temporaryPsi;
-//		try {
-//			for(int i=0;i<nbPlus;i++){
-//				for(int j=nbPlus;j<x.size(); j++){
-//					if (ranking.get(i) == ranking.get(j)) {
-//						yij = 0;
-//					}
-//					else yij = (ranking.get(i) < ranking.get(j)) ? 1 : -1;
-//					temporaryPsi = VectorOperations.scalarProduct(
-//							VectorOperations.substract(x.get(i),x.get(j))
-//							, yij); 
-//					psi = VectorOperations.add(psi,temporaryPsi);
-//				}
-//			}
-//		} catch(NullPointerException e) {}
 		
-		List<Integer> ranking = y.getRanking();
-		List<Integer> labels = y.getLabelsGT();
-		List<Integer> positionning = y.getPositionningFromRanking();
-		int nbPlus = y.getNbPlus();
-		
-		double[] psi = new double[ranking.size()];
-		int yij;
-		double[] tmpPsi;
-		
-		//Parcours des exemples classes positifs
-		for(int i=0;i<nbPlus;i++){
-			// Parcours des exemples classe negatifs
-			for(int j=nbPlus;j<ranking.size(); j++){
-				//Calcul yij
-				if (ranking.get(i) == ranking.get(j)) {
-					yij = 0;
+		double[] psi = new double[x.get(1).length];
+		double[] temporaryPsi;
+		try {
+			for(int i: y.getPlus()){
+				for(int j: y.getMinus()){
+					temporaryPsi = VectorOperations.scalarProduct(
+							VectorOperations.substract(x.get(i),x.get(j))
+							, y.isBefore(i, j)); 
+					psi = VectorOperations.add(psi,temporaryPsi);
 				}
-				else yij = (ranking.get(i) < ranking.get(j)) ? 1 : -1; 
-				
-				tmpPsi = VectorOperations.scalarProduct(
-						VectorOperations.substract(x.get(i),x.get(j))
-						, yij); 
-				psi = VectorOperations.add(psi,tmpPsi);
 			}
-			
-		}
+		} catch(NullPointerException e) {}
+		
 		return psi;
 	}
 
@@ -76,6 +43,7 @@ public class RankingInstanciation implements IStructInstantiation<List<double[]>
 	 */
 	public double delta(RankingOutput y1, RankingOutput y2) {
 		return 1 - RankingFunctions.averagePrecision(y2);
+		// TODO see if it ain't averagePrecision(y1) that must be called
 	}
 	
 	/**
