@@ -257,6 +257,33 @@ class Index(object):
         
     def getPrevNodes(self, doc_id):
         return np.array(self.network[:,int(doc_id)-1].nonzero()[0], dtype=int)+1
-    
-    
+
+class InMemoryIndex(Index):
+
+    def __init__(self, srcFile, parser, txtRepr):
+        self.docs = {}
+        self.stems = {}
+        parser.initFile(srcFile)
+        doc = parser.nextDocument()
+        while doc is not None:
+            docId = doc.getId()
+            docStems = txtRepr.getTextRepresentation(doc.getText())
+            for stem, freq in docStems.items():
+                if stem in self.stems:
+                    self.stems[stem][docId] = freq
+                else:
+                    self.stems[stem]={docId:freq}
+                if docId in self.docs:
+                    self.docs[docId][stem] = freq
+                else:
+                    self.docs[docId] = {stem:freq}
+            doc = parser.nextDocument()
+
+    def getTfsForDoc(self, docId):
+        return self.docs[docId]
+
+    def getTfsForStem(self, stem):
+        return self.stems[stem]
+
+
         
