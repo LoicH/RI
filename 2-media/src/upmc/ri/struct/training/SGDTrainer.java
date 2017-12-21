@@ -1,5 +1,6 @@
 package upmc.ri.struct.training;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -12,29 +13,31 @@ import upmc.ri.utils.VectorOperations;
 public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 	
 	private Evaluator<X, Y> eval ;
-	
 	private int iterations;
 	private double gradStep;
 	private double lambda;
 
-	public SGDTrainer(int iterations, double gradStep, double lambda) {
+	public SGDTrainer(int iterations, double gradStep, double lambda,Evaluator<X, Y> eval ) {
 		this.iterations = iterations;
 		this.gradStep = gradStep;
 		this.lambda = lambda;
+		this.eval = eval;
 	}
 
 	
-	public void train(List<STrainingSample<X, Y>> lts, IStructModel<X, Y> model) {
+	public double[][] train(List<STrainingSample<X, Y>> lts, IStructModel<X, Y> model) {
 		int N = lts.size(); // Number of samples
-		this.eval = new Evaluator<X, Y>();
-		this.eval.setListtrain(lts);
-		this.eval.setModel(model);
+		//this.eval = new Evaluator<X, Y>();
+		//this.eval.setListtrain(lts);
+		//this.eval.setModel(model);
 		
-		// Init w
 		//TODO check if w is a pointer
 		double[] w = model.getParameters();
 		Arrays.fill(w, 0);
 		model.setParameters(w);
+		
+		ArrayList<Float> error = new ArrayList<Float>();
+		double[][] errorTrainTest = new double[2][this.iterations];
 		
 		Random generator = new Random();
 		for(int t = 0; t<this.iterations; t++){
@@ -61,17 +64,19 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 				}
 				model.setParameters(w);
 			}
-			this.eval.evaluateTrain();
-			System.out.println("Train error:"+this.eval.getErr_train());
 			
-			/*this.eval.evaluate();
+//			this.eval.evaluateTrain();
+//			System.out.println("Train error:"+this.eval.getErr_train());
+//			error.add((float) this.eval.getErr_train());
+			
+			this.eval.evaluate();
 			System.out.println("Train error:"+this.eval.getErr_train());
 			System.out.println("Test error:"+this.eval.getErr_test());
-			*/
-
+			errorTrainTest[0][t] = this.eval.getErr_train();
+			errorTrainTest[1][t] = this.eval.getErr_test();
 		}
 		
-		
+		return errorTrainTest;
 	}
 	
 	public double convex_loss(List<STrainingSample<X, Y>> lts, IStructModel<X, Y> model){
@@ -89,8 +94,11 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 			tmp -= VectorOperations.dot(psi, w);
 			P += 1.0/N * tmp;
 		}
-		
 		return P;
+	}
+	
+	public void setEval(Evaluator<X, Y> eval) {
+		this.eval = eval;
 	}
 
 }

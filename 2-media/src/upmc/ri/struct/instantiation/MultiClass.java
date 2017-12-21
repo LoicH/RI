@@ -70,7 +70,7 @@ public class MultiClass implements IStructInstantiation<double[], String> {
 	 * @param gt The list of true labels
 	 * @return Nothing
 	 */
-	public void confusionMatrix(List<String> predictions, List<String> gt) {
+	public double [][] confusionMatrix(List<String> predictions, List<String> gt) {
 		double[][] matrix = new double[this.set.size()][this.set.size()];
 		for(int i = 0; i<matrix.length; i++) {
 			Arrays.fill(matrix[i], 0);
@@ -85,6 +85,7 @@ public class MultiClass implements IStructInstantiation<double[], String> {
 		// TODO Visualizing Confusion Matrix with EJLM.MatrixVisualization
 		DenseMatrix64F confMatrix = new DenseMatrix64F(matrix);
 		MatrixVisualization.show(confMatrix, "Matrice de confusion");
+		return matrix;
 		
 	}
 

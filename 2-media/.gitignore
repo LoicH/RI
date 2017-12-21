@@ -3,3 +3,6 @@
 /libs/*.jar
 .classpath
 .project
+error*
+confusion*
+Graphics.ipynb

@@ -9,31 +9,31 @@ import upmc.ri.utils.VectorOperations;;
 
 public class RankingInstanciation implements IStructInstantiation<List<double[]>, RankingOutput> {
 
+	private int dim;
+	
+	public RankingInstanciation() {
+		this.dim = 250;
+	}
 	/**
 	 * @param x List of double array that are image representation (BoW in d dimension)
 	 * @param y RankingOuput object which contains a List of ordered images of the input x according to a request for ranking purpose
 	 * @return The feature map for the specific ranking problem (ie binary classification were class 1 is all wanted items and class B all others items)
 	 */
 	public double[] psi(List<double[]> x, RankingOutput y) {
-		List<Integer> ranking = y.getRanking();
-		int nbPlus = y.getNbPlus();
 		
 		double[] psi = new double[x.get(1).length];
-		int yij;
 		double[] temporaryPsi;
-		
-		for(int i=0;i<nbPlus;i++){
-			for(int j=nbPlus;j<x.size(); j++){
-				if (ranking.get(i) == ranking.get(j)) {
-					yij = 0;
+		try {
+			for(int i: y.getPlus()){
+				for(int j: y.getMinus()){
+					temporaryPsi = VectorOperations.scalarProduct(
+							VectorOperations.substract(x.get(i),x.get(j))
+							, y.isBefore(i, j)); 
+					psi = VectorOperations.add(psi,temporaryPsi);
 				}
-				else yij = (ranking.get(i) < ranking.get(j)) ? 1 : -1;
-				temporaryPsi = VectorOperations.scalarProduct(
-						VectorOperations.substract(x.get(i),x.get(j))
-						, yij); 
-				psi = VectorOperations.add(psi,temporaryPsi);
 			}
-		}
+		} catch(NullPointerException e) {}
+		
 		return psi;
 	}
 
@@ -43,6 +43,7 @@ public class RankingInstanciation implements IStructInstantiation<List<double[]>
 	 */
 	public double delta(RankingOutput y1, RankingOutput y2) {
 		return 1 - RankingFunctions.averagePrecision(y2);
+		// TODO see if it ain't averagePrecision(y1) that must be called
 	}
 	
 	/**
@@ -50,6 +51,13 @@ public class RankingInstanciation implements IStructInstantiation<List<double[]>
 	  */
 	public Set<RankingOutput> enumerateY() {
 		return null;
+	}
+	
+	public int getDim() {
+		return dim;
+	}
+	public void setDim(int dim) {
+		this.dim = dim;
 	}
 
 }

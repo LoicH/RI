@@ -3,8 +3,8 @@ package upmc.ri.struct.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
 
 import upmc.ri.struct.STrainingSample;
 import upmc.ri.struct.ranking.RankingFunctions;
@@ -20,7 +20,7 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 	@Override
 	public RankingOutput predict(List<double[]> x) {	
 		// Create map of 'input -> score'
-		TreeMap<double[], Float> map = new TreeMap<double[], Float>();
+		HashMap<double[], Float> map = new HashMap<double[], Float>();
 		List<Integer> labelsGT = new ArrayList<Integer>();
 		int nbPlus = 0;
 		// Create list of indexes:

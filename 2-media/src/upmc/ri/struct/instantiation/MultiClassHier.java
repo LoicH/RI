@@ -18,7 +18,7 @@ public class MultiClassHier extends MultiClass{
 			for (String y2 : this.getSet()) {
 				index_column = this.getMap().get(y2);
 				if (index_line > index_column && !y1.equals(y2)) {
-					this.distances[index_line][index_column] = rc.calcRelatednessOfWords(y1, y2);
+					this.distances[index_line][index_column] =rc.calcRelatednessOfWords(y1, y2);
 					this.distances[index_column][index_line] = this.distances[index_line][index_column];
 				}
 			} 

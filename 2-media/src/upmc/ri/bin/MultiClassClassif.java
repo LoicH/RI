@@ -15,6 +15,7 @@ import upmc.ri.struct.instantiation.MultiClassHier;
 import upmc.ri.struct.model.LinearStructModel_Ex;
 import upmc.ri.struct.training.ITrainer;
 import upmc.ri.struct.training.SGDTrainer;
+import upmc.ri.utils.CSVExporter;
 
 public class MultiClassClassif {
 	
@@ -46,12 +47,17 @@ public class MultiClassClassif {
 		
 		Evaluator<double[],String> evaluator = new Evaluator<double[], String>();
 		evaluator.setListtrain(dataset.getTrain());
+		System.out.println(dataset.getTest().size());
 		evaluator.setListtest(dataset.getTest());
 		evaluator.setModel(model);
 				
 		// TODO print the right Errors in SGDTrain.train (Evaluator.evaluate)
-		ITrainer<double[],String> trainer = new SGDTrainer<double[],String>(iterations, gama, lambda);
-		trainer.train(dataset.getTrain(), model);
+		ITrainer<double[],String> trainer = new SGDTrainer<double[],String>(iterations, gama, lambda, evaluator);
+		
+		double[][] error;
+		error = trainer.train(dataset.getTrain(), model);
+		
+		CSVExporter.exportMatrix(error, "error.txt");
 		
 		// Inference and evaluation (Confusion Matrix)
 		List<String> trueTestLabels = new ArrayList<String>();
@@ -67,8 +73,10 @@ public class MultiClassClassif {
 	        Map.Entry pair = (Map.Entry)it.next();
 	        System.out.println(pair.getKey() + " = " + pair.getValue());
 	    }
-	        
-		instance.confusionMatrix(predictTestLabels, trueTestLabels);
+        double[][] matrix ;
+		matrix = instance.confusionMatrix(predictTestLabels, trueTestLabels);
+		//CSVExporter.exportMatrix(matrix, "confusion.txt");
+		CSVExporter.exportMatrix(matrix, "confusion_"+iterations+"_iterations"+gama+"_learningRate.txt");
 		// TODO conclusion about learning how do errors spread across differents classes ?
 		// TODO Display some misclassified pictures
 		
@@ -82,10 +90,18 @@ public class MultiClassClassif {
 		LinearStructModel_Ex<double[],String> modelHier = new LinearStructModel_Ex<double[],String> (dimHier * classNumbersHier);
 		modelHier.setInstance(instanceHier);
 		
-		evaluator.setModel(modelHier);
+		Evaluator<double[],String> evaluatorHier = new Evaluator<double[], String>();
+		evaluatorHier.setListtrain(dataset.getTrain());
+		evaluatorHier.setListtest(dataset.getTest());
+		evaluatorHier.setModel(modelHier);
+		
+		
 		// Here we evaluate on the HierDelta with params learned on HierDelta
-		ITrainer<double[],String> trainerHier = new SGDTrainer<double[],String>(iterations, gama, lambda);
-		trainerHier.train(dataset.getTrain(), modelHier);
+		ITrainer<double[],String> trainerHier = new SGDTrainer<double[],String>(iterations, gama, lambda,evaluatorHier );
+		double[][] errorHier;
+		errorHier = trainerHier.train(dataset.getTrain(), modelHier);
+		
+		CSVExporter.exportMatrix(errorHier, "errorHier.txt");
 		
 		// Here we evaluate on the 0/1 with params learned on HierDelta
 		// TODO re use parameters found on Hierarchical model to predict with 0/1 Loss model and print confusion matrix
@@ -94,8 +110,11 @@ public class MultiClassClassif {
 		evaluator.setModel(modelHier);
 		evaluator.evaluate();
 		// TODO see how confusion matrix work on switching params from 0/1 to Hier
-		instance2.confusionMatrix(predictTestLabels, trueTestLabels);
+		double[][] matrixHier ;
+		matrixHier = instance2.confusionMatrix(predictTestLabels, trueTestLabels);
 		
+		//CSVExporter.exportMatrix(matrix, "confusionHier.txt");
+		CSVExporter.exportMatrix(matrix, "confusionHier_"+iterations+"_iterations"+gama+"_learningRate.txt");
 		
 	}
 
