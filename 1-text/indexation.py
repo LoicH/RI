@@ -36,7 +36,7 @@ class Index(object):
         
         self.meanDocLen = None
         
-    def indexation(self, corpus, parser, txtRepr):
+    def indexation(self, corpus, parser, txtRepr, verbose=False):
         """ Create the indexes.
         :param corpus: the path to the files that contains 
             all document informations
@@ -54,7 +54,8 @@ class Index(object):
         
         # Build the index of documents and compute the length of each
         # stem representation
-        print("1st pass: build the index...")
+        if verbose:
+            print("1st pass: build the index...")
         doc = self.parser.nextDocument()
         with open(self.indexPath, "w") as index:
             while doc is not None:
@@ -81,7 +82,8 @@ class Index(object):
         
         
         # Build the inverted index
-        print("2nd pass: build the inverted index...")
+        if verbose:
+            print("2nd pass: build the inverted index...")
         self.parser.initFile(corpus) # Reset the parser 
         self.network = dok_matrix((len(self.docs), len(self.docs)))
         # Iterate over all documents:
@@ -99,10 +101,13 @@ class Index(object):
                 # doc.others['links'] is  '2\t5\t2;3\t5\t2;4\t5\t2;'
                 links = doc.others['links'].split(';') # list of strings
                 neighbours = [s.split()[0] for s in links if len(s) > 0]
+                titleId = int(title) -1
                 for dest in np.unique(neighbours):
-                    if dest != title:
+                    destId = int(dest) -1
+                    if titleId != destId and destId < len(self.docs):
                         self.network[int(title)-1, int(dest)-1] = 1
-                    
+                    elif destId >= len(self.docs) and verbose:
+                        print("Warning, could not store link %s -> %s" % (title, dest))
                 doc = self.parser.nextDocument()
         
         print("Finished.")
