@@ -39,7 +39,7 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 		
 		Random generator = new Random();
 		for(int t = 0; t<this.iterations; t++){
-//			System.out.println("Iteration "+ t);
+			System.out.println("Iteration "+ t);
 			for(int i = 0; i<N; i++){
 				
 //				if (i%1000 == 0) {
@@ -62,14 +62,10 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 				}
 				model.setParameters(w);
 			}
-			
-//			this.eval.evaluateTrain();
-//			System.out.println("Train error:"+this.eval.getErr_train());
-//			error.add((float) this.eval.getErr_train());
-			
+						
 			this.eval.evaluate();
-//			System.out.println("Train error:"+this.eval.getTrainError());
-//			System.out.println("Test error:"+this.eval.getTestError());
+			System.out.println("Train error:"+this.eval.getTrainError());
+			System.out.println("Test error:"+this.eval.getTestError());
 			errorTrainTest[0][t] = this.eval.getTrainError();
 			errorTrainTest[1][t] = this.eval.getTestError();
 		}

@@ -92,28 +92,29 @@ public static void main(String[] args) {
 	List<Double> lambdaVal = new ArrayList<Double>();
 	List<Double> gammaVal = new ArrayList<Double>();
 	
-	for(int i = -10; i<=-9; i++){
+	for(int i = -10; i<=0; i++){
 		lambdaVal.add(Math.pow(10, i));
 		gammaVal.add(Math.pow(10, i));
 	}
 	
 	double bestLambda = -1;
 	double bestGamma = -1;
-	double bestScore = Double.NEGATIVE_INFINITY;
+	double bestError = Double.POSITIVE_INFINITY;
 	for(double l:lambdaVal){
 		for(double g:gammaVal){
-			System.out.println("Testing lambda="+l+", gamma="+g);
+			System.out.print("Testing lambda="+l+", gamma="+g+"... ");
 			trainer = new SGDTrainer<double[],String>(iterations, g, l, evaluator);
 			double [] trainError = trainer.train(dataset.getTrain(), model)[0];
-			double score = trainError[iterations-1];
-			System.out.println("Score="+score);
-			if (Double.compare(score, bestScore) > 0){
+			double gridTrainError = trainError[iterations-1];
+			System.out.println("Score="+gridTrainError);
+			if (Double.compare(gridTrainError, bestError) < 0){
 				bestLambda = l;
 				bestGamma = g;
+				bestError = gridTrainError;
 			}
 		}
 	}
-	System.out.println("Best score: "+ bestScore);
+	System.out.println("Best score: "+ bestError);
 	System.out.println("Best lambda: "+ bestLambda);
 	System.out.println("Best gamma: "+ bestGamma);
 		

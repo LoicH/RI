@@ -37,8 +37,8 @@ public class HierarchMain {
 		System.out.println("Test labels:");
 		System.out.println(dataset.countTestLabels());
 		// Learning hyper parameters
-		float lambda = (float) Math.pow(10,-6);
-		float gamma = (float) Math.pow(10,-2);
+		double lambda = Math.pow(10,-4);
+		double gamma = Math.pow(10,-2);
 		int iterations = 25;
 		
 		//================================================================================
