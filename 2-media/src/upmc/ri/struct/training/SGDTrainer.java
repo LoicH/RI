@@ -1,6 +1,5 @@
 package upmc.ri.struct.training;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -13,8 +12,11 @@ import upmc.ri.utils.VectorOperations;
 public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 	
 	private Evaluator<X, Y> eval ;
+	/** Number of iterations used in training */
 	private int iterations;
+	/** Factor used to update the vector parameter */
 	private double gradStep;
+	/** Regularization parameter */
 	private double lambda;
 
 	public SGDTrainer(int iterations, double gradStep, double lambda,Evaluator<X, Y> eval ) {
@@ -27,21 +29,17 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 	
 	public double[][] train(List<STrainingSample<X, Y>> lts, IStructModel<X, Y> model) {
 		int N = lts.size(); // Number of samples
-		//this.eval = new Evaluator<X, Y>();
-		//this.eval.setListtrain(lts);
-		//this.eval.setModel(model);
 		
 		//TODO check if w is a pointer
 		double[] w = model.getParameters();
 		Arrays.fill(w, 0);
 		model.setParameters(w);
 		
-		ArrayList<Float> error = new ArrayList<Float>();
 		double[][] errorTrainTest = new double[2][this.iterations];
 		
 		Random generator = new Random();
 		for(int t = 0; t<this.iterations; t++){
-			System.out.println("Iteration "+ t);
+//			System.out.println("Iteration "+ t);
 			for(int i = 0; i<N; i++){
 				
 //				if (i%1000 == 0) {
@@ -70,10 +68,10 @@ public class SGDTrainer<X, Y> implements ITrainer<X, Y> {
 //			error.add((float) this.eval.getErr_train());
 			
 			this.eval.evaluate();
-			System.out.println("Train error:"+this.eval.getErr_train());
-			System.out.println("Test error:"+this.eval.getErr_test());
-			errorTrainTest[0][t] = this.eval.getErr_train();
-			errorTrainTest[1][t] = this.eval.getErr_test();
+//			System.out.println("Train error:"+this.eval.getTrainError());
+//			System.out.println("Test error:"+this.eval.getTestError());
+			errorTrainTest[0][t] = this.eval.getTrainError();
+			errorTrainTest[1][t] = this.eval.getTestError();
 		}
 		
 		return errorTrainTest;

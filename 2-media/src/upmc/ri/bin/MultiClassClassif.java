@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import upmc.ri.struct.DataSet;
@@ -26,7 +25,7 @@ public class MultiClassClassif {
 	    //================================================================================
 		// Data set
 		System.out.println("Loading data");
-		String path = "/home/sebastien/data_science/DAC/Master_DAC/RI/RI/2-media/data";
+		String path = "data";
 		List<String> files = Arrays.asList(path+"/tree-frog.txt", path+"/harp.txt",path+"/minivan.txt", 
 				path+"/taxi.txt", path+"/acoustic_guitar.txt", path+"/ambulance.txt", 
 				path+"/electric_guitar.txt", path+"/european_fire_salamander.txt", path+"/wood-frog.txt" ); 
@@ -46,9 +45,9 @@ public class MultiClassClassif {
 		model.setInstance(instance);
 		
 		Evaluator<double[],String> evaluator = new Evaluator<double[], String>();
-		evaluator.setListtrain(dataset.getTrain());
+		evaluator.setListTrain(dataset.getTrain());
 		System.out.println(dataset.getTest().size());
-		evaluator.setListtest(dataset.getTest());
+		evaluator.setListTest(dataset.getTest());
 		evaluator.setModel(model);
 				
 		// TODO print the right Errors in SGDTrain.train (Evaluator.evaluate)
@@ -70,7 +69,7 @@ public class MultiClassClassif {
 		System.out.println("Corresponding class and indexes");
 		Iterator<Entry<String, Integer>> it = instance.getMap().entrySet().iterator();
 	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
+	        Entry<String, Integer> pair = it.next();
 	        System.out.println(pair.getKey() + " = " + pair.getValue());
 	    }
         double[][] matrix ;
@@ -91,8 +90,8 @@ public class MultiClassClassif {
 		modelHier.setInstance(instanceHier);
 		
 		Evaluator<double[],String> evaluatorHier = new Evaluator<double[], String>();
-		evaluatorHier.setListtrain(dataset.getTrain());
-		evaluatorHier.setListtest(dataset.getTest());
+		evaluatorHier.setListTrain(dataset.getTrain());
+		evaluatorHier.setListTest(dataset.getTest());
 		evaluatorHier.setModel(modelHier);
 		
 		
@@ -110,8 +109,8 @@ public class MultiClassClassif {
 		evaluator.setModel(modelHier);
 		evaluator.evaluate();
 		// TODO see how confusion matrix work on switching params from 0/1 to Hier
-		double[][] matrixHier ;
-		matrixHier = instance2.confusionMatrix(predictTestLabels, trueTestLabels);
+//		double[][] matrixHier ;
+//		matrixHier = instance2.confusionMatrix(predictTestLabels, trueTestLabels);
 		
 		//CSVExporter.exportMatrix(matrix, "confusionHier.txt");
 		CSVExporter.exportMatrix(matrix, "confusionHier_"+iterations+"_iterations"+gama+"_learningRate.txt");

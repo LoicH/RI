@@ -1,9 +1,7 @@
 package upmc.ri.main;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import upmc.ri.bin.VisualIndexes;
 import upmc.ri.index.ImageFeatures;
@@ -50,7 +48,7 @@ public class Main {
 		
 		System.out.println("Computing PCA");
 		DataSet<double[], String> pca = PCA.computePCA(ds, 250);
-		
+		System.out.println(pca);
 		System.out.println("Over");
 	}
 

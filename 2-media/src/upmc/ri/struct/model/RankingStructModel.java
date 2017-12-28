@@ -17,10 +17,9 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 		super(dimpsi);
 	}
 
-	@Override
 	public RankingOutput predict(List<double[]> x) {	
 		// Create map of 'input -> score'
-		HashMap<double[], Float> map = new HashMap<double[], Float>();
+		final HashMap<double[], Float> map = new HashMap<double[], Float>();
 		List<Integer> labelsGT = new ArrayList<Integer>();
 		int nbPlus = 0;
 		// Create list of indexes:
@@ -42,10 +41,11 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 			}
 		}
 		// Sort 'listX' with keys from 'map'
+		final List<double[]> finalX = new ArrayList<double[]>(x);
+		
 		Collections.sort(listIdx, new Comparator<Integer>() {
-			@Override
 			public int compare(Integer i1, Integer i2) {
-				if (map.get(x.get(i1)) > map.get(x.get(i2))){
+				if (map.get(finalX.get(i1)) > map.get(finalX.get(i2))){
 					return -1;
 				}
 				else {
@@ -56,7 +56,6 @@ public class RankingStructModel<X,Y> extends LinearStructModel<List<double[]>,Ra
 		return result;
 	}
 
-	@Override
 	public RankingOutput lai(STrainingSample<List<double[]>, RankingOutput> ts) {
 		return RankingFunctions.loss_augmented_inference(ts, this.getParameters());
 	}

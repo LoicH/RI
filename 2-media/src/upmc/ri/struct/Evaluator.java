@@ -1,78 +1,79 @@
 package upmc.ri.struct;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import upmc.ri.struct.model.IStructModel;
 
+/** Class used to compute train and test error.
+ * Contains the list of training samples, and the list of test samples.
+ * Contains the model used to compute the loss
+ * @param <X> The type of the input of the samples
+ * @param <Y> The type of the output of the samples
+ */
 public class Evaluator<X,Y> {
-	private List<STrainingSample<X,Y>> listtrain;
-	private List<STrainingSample<X,Y>> listtest;
-	//private IStructInstantiation <X,Y> type;
+	private List<STrainingSample<X,Y>> listTrain;
+	private List<STrainingSample<X,Y>> listTest;
 	private IStructModel<X,Y> model;
 	
-	private List<Y> pred_train;
-	private List<Y> pred_test;
-	private double err_train;
-	private double err_test;
+	/** The last training error computed */
+	private double errTrain;
+	/** The last test error computed */
+	private double errTest;
 
-//	public Evaluator(List<STrainingSample<X,Y>> lts, List<STrainingSample<X,Y>>  ltt, IStructModel<X,Y> m){
-//		this.listtrain = lts;
-//		this.listtest  = ltt;
-//		this.model = m;
-//		this.pred_test = new ArrayList<Y>();
-//		this.pred_train = new ArrayList<Y>();
-//	}
+	/** Compute the training and test error. */
 	public void evaluate(){
-		err_train=0.0;
-		pred_train = new ArrayList<Y>();
-		// Evaluate training set
-		for(STrainingSample<X,Y> ts : listtrain){
-			Y pred = model.predict(ts.input);
-			pred_train.add(pred);
-			err_train += model.instantiation().delta(ts.output,pred);
-		}
-		
-		err_train /=listtrain.size();
-		
-		err_test=0.0;
-		pred_test = new ArrayList<Y>();
-		// Evaluate testing set
-		for(STrainingSample<X,Y> ts : listtest){
-			Y pred = model.predict(ts.input);
-			pred_test.add(pred);
-			err_test += model.instantiation().delta(ts.output,pred);
-		}
-		err_test /=listtest.size();
-	}
-	
-	public void evaluateTrain(){
-		err_train=0.0;
-		pred_train = new ArrayList<Y>();
-		// Evaluate training set
-		for(STrainingSample<X,Y> ts : listtrain){
-			Y pred = model.predict(ts.input);
-			pred_train.add(pred);
-			err_train += model.instantiation().delta(ts.output,pred);
-		}
-		
-		err_train /=listtrain.size();
-	}
-		
-	public double getErr_train() {
-		return err_train;
+		this.evaluateTestError();
+		this.evaluateTrainError();
 	}
 
-	public double getErr_test() {
-		return err_test;
+	/** Compute the error on the training samples.
+	 * @return The computed error on the training samples
+	 */
+	public double evaluateTrainError(){
+		this.errTrain= this.evaluateError(this.listTrain);
+		return this.errTrain;
 	}
 
-	public void setListtrain(List<STrainingSample<X, Y>> listtrain) {
-		this.listtrain = listtrain;
+	/** Compute the error on the testing samples.
+	 * @return The computed error on the testing samples
+	 */
+	public double evaluateTestError(){
+		this.errTest= this.evaluateError(this.listTest);
+		return this.errTest;
 	}
 
-	public void setListtest(List<STrainingSample<X, Y>> listtest) {
-		this.listtest = listtest;
+	public double evaluateError(List<STrainingSample<X, Y>> tsList){
+		double error = 0;
+		for(STrainingSample<X,Y> ts : tsList){
+			Y pred = model.predict(ts.input);
+			error += model.instantiation().delta(ts.output,pred);
+		}
+		error /= tsList.size();
+		return error;
+	}
+		
+	/** Retrieve the last computed train error.
+	 * Warning: Does not compute the error.
+	 * @return The error computed over all the training samples
+	 */
+	public double getTrainError() {
+		return this.errTrain;
+	}
+
+	/** Retrieve the last computed test error.
+	 * Warning: Does not compute the error.
+	 * @return The error computed over all the testing samples
+	 */
+	public double getTestError() {
+		return this.errTest;
+	}
+
+	public void setListTrain(List<STrainingSample<X, Y>> listTrain) {
+		this.listTrain = listTrain;
+	}
+
+	public void setListTest(List<STrainingSample<X, Y>> listtest) {
+		this.listTest = listtest;
 	}
 
 	public void setModel(IStructModel<X, Y> model) {

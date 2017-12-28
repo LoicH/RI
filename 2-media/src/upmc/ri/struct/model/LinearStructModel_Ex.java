@@ -16,7 +16,7 @@ public class LinearStructModel_Ex<X, Y> extends LinearStructModel<X, Y> {
 	public Y predict(X x) {
 		double[] w = super.getParameters();
 		Y yMax = null;
-		double valMax = Double.MIN_VALUE;
+		double valMax = Double.NEGATIVE_INFINITY;
 		for (Y y : this.instance.enumerateY()){
 			double val = VectorOperations.dot(w, super.instantiation().psi(x, y));
 			if (val > valMax){

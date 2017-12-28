@@ -12,16 +12,18 @@ import upmc.ri.io.ImageNetParser;
 
 public class MultiClass implements IStructInstantiation<double[], String> {
 	
-	
+	/** Size of an input sample */
 	private int dim;
+	/** The set of all labels	 */
 	private Set<String> set;
+	/** Maps every label to an int */
 	private Map<String,Integer> map;
 	
 
 	public MultiClass() {
 		this.dim = 250;
 		this.set = ImageNetParser.classesImageNet();
-		this.map = new HashMap<>();
+		this.map = new HashMap<String, Integer>();
 		
 		int indexY = 0;
 		for (String y: this.set) {
@@ -65,10 +67,10 @@ public class MultiClass implements IStructInstantiation<double[], String> {
 		return this.set;
 	}
 	
-	/** Computes and shows the confusion matrix
+	/** Computes but does not show the confusion matrix
 	 * @param predictions The list of labels predicted for the test set
 	 * @param gt The list of true labels
-	 * @return Nothing
+	 * @return A matrix where matrix[i][j] is the number of 'j' elements we predicted as 'i' 
 	 */
 	public double [][] confusionMatrix(List<String> predictions, List<String> gt) {
 		double[][] matrix = new double[this.set.size()][this.set.size()];
@@ -78,15 +80,23 @@ public class MultiClass implements IStructInstantiation<double[], String> {
 		int index_line; // predicted
 		int index_column; // real value
 		for(int i = 0; i < predictions.size(); i++) {
-			index_line = this.map.get(gt.get(i));
-			index_column = this.map.get(predictions.get(i));
+			String trueLabel = gt.get(i);
+			String pred = predictions.get(i);
+			index_line = this.map.get(pred);
+			index_column = this.map.get(trueLabel);
 			matrix[index_line][index_column]++;
 		}
-		// TODO Visualizing Confusion Matrix with EJLM.MatrixVisualization
-		DenseMatrix64F confMatrix = new DenseMatrix64F(matrix);
-		MatrixVisualization.show(confMatrix, "Matrice de confusion");
 		return matrix;
 		
+	}
+	
+	/** Show the confusion matrix
+	 * @param confMatrix The confusion matrix
+	 */
+	public void showConfMatrix(double[][] confMatrix){
+		DenseMatrix64F denseMatrix = new DenseMatrix64F(confMatrix);
+		MatrixVisualization.show(denseMatrix, "Matrice de confusion");
+
 	}
 
 	public Set<String> getSet() {

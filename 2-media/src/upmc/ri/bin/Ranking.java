@@ -37,8 +37,8 @@ public class Ranking {
 		modelRanking.setInstance(instanceRanking);
 		
 		Evaluator<List<double[]>,RankingOutput> evaluator = new Evaluator<List<double[]>,RankingOutput>();
-		evaluator.setListtrain(datasetRanking.getTrain());
-		evaluator.setListtest(datasetRanking.getTest());
+		evaluator.setListTrain(datasetRanking.getTrain());
+		evaluator.setListTest(datasetRanking.getTest());
 		evaluator.setModel(modelRanking);
 		
 		SGDTrainer<List<double[]>,RankingOutput> trainer = new SGDTrainer<List<double[]>,RankingOutput>(iterations, gama, lambda, evaluator);

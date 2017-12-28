@@ -9,9 +9,9 @@ import upmc.ri.struct.STrainingSample;
 public class PCA {
 	public static DataSet<double[],String> computePCA(DataSet<double[],String> data , int nbComp){
 		
-		int nbTrain = data.listtrain.size();
-		int nbTest = data.listtest.size();
-		int dim =  data.listtrain.get(0).input.length;
+		int nbTrain = data.listTrain.size();
+		int nbTest = data.listTest.size();
+		int dim =  data.listTrain.get(0).input.length;
 		
 		System.out.println("************************* PCA computation *************************");
 		List<STrainingSample<double[],String>> listtrainPCA = new ArrayList<STrainingSample<double[],String>>();
@@ -21,7 +21,7 @@ public class PCA {
 		pca.setup(nbTrain, dim);
 
 		for(int i=0;i<nbTrain;i++){
-			pca.addSample(data.listtrain.get(i).input);
+			pca.addSample(data.listTrain.get(i).input);
 		}
 //		for(int i=0;i<nbTest;i++){
 //			pca.addSample(data.listtest.get(i).input);
@@ -40,14 +40,14 @@ public class PCA {
 		
 		// training set projection
 		for(int i=0;i<nbTrain;i++){
-			double[] proj = pca.sampleToEigenSpace(data.listtrain.get(i).input);
-			listtrainPCA.add(new STrainingSample<double[], String>(proj, data.listtrain.get(i).output));
+			double[] proj = pca.sampleToEigenSpace(data.listTrain.get(i).input);
+			listtrainPCA.add(new STrainingSample<double[], String>(proj, data.listTrain.get(i).output));
 		}
 		// testing set projection
 		for(int i=0;i<nbTest;i++){
-			double[] proj = pca.sampleToEigenSpace(data.listtest.get(i).input);
+			double[] proj = pca.sampleToEigenSpace(data.listTest.get(i).input);
 			//ltestPCA.add(new TrainingSample<double[]>(proj, ts.label));
-			listtestPCA.add(new STrainingSample<double[], String>(proj, data.listtest.get(i).output));
+			listtestPCA.add(new STrainingSample<double[], String>(proj, data.listTest.get(i).output));
 		}
 		
 		return new DataSet<double[],String>(listtrainPCA,listtestPCA);

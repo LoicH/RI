@@ -202,13 +202,13 @@ public class RankingFunctions {
 		List<RankingData> listtmp = new ArrayList<RankingData>();
 		int nbPlus=0,nbMinus=0;
 		
-		for(STrainingSample<double[], String> ts : data.listtrain){
+		for(STrainingSample<double[], String> ts : data.listTrain){
 			if(ts.output.equals(classquery)){
 				listtmp.add(new RankingData(ts.input, nbPlus));
 				nbPlus++;
 			}
 		}
-		for(STrainingSample<double[], String> ts : data.listtrain){
+		for(STrainingSample<double[], String> ts : data.listTrain){
 			if(!ts.output.equals(classquery) ){
 				listtmp.add(new RankingData(ts.input, nbPlus+nbMinus));
 				nbMinus++;
@@ -250,7 +250,7 @@ public class RankingFunctions {
 		
 		int nbPlusTest=0,nbMinusTest=0;
 		
-		for(STrainingSample<double[], String> ts : data.listtest){
+		for(STrainingSample<double[], String> ts : data.listTest){
 			if(ts.output.equals(classquery)){
 				ltest.add(ts.input);
 				rankingtest.add(nbPlusTest);
@@ -258,7 +258,7 @@ public class RankingFunctions {
 				nbPlusTest++;
 			}
 		}
-		for(STrainingSample<double[], String> ts : data.listtest){
+		for(STrainingSample<double[], String> ts : data.listTest){
 			if(!ts.output.equals(classquery)){
 				ltest.add(ts.input);
 				rankingtest.add(nbPlusTest+nbMinusTest);

@@ -2,7 +2,6 @@ package upmc.ri.struct.model;
 
 import java.util.Arrays;
 
-import upmc.ri.struct.STrainingSample;
 import upmc.ri.struct.instantiation.IStructInstantiation;
 
 public abstract class LinearStructModel<X, Y> implements IStructModel<X, Y> {

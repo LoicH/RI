@@ -40,5 +40,7 @@ public class VisualIndexes {
 		}
 		return new DataSet<double[], String>(trainSamples, testSamples);
 	}
+	
+
 
 }
