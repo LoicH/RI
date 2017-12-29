@@ -40,8 +40,8 @@ public static void main(String[] args) {
 	System.out.println(dataset.countTestLabels());
 
 	int iterations = 10;
-	double lambda = Math.pow(10,-6);
-	double gamma = Math.pow(10,-2);
+	double lambda = Math.pow(10,-8);
+	double gamma = Math.pow(10,-6);
 	//================================================================================
     // 0/1 model
     //================================================================================
@@ -70,7 +70,7 @@ public static void main(String[] args) {
 	List<String> predictTestLabels = new ArrayList<String>();
 	for(STrainingSample<double[], String> ts : dataset.getTest()) {
 		trueTestLabels.add(ts.output);
-		predictTestLabels.add(model.predict(ts.input));
+		predictTestLabels.add(model.predict(ts));
 	}
 	// TODO print all class mapping String Index to interpret confusion matrix
 	System.out.println("Corresponding class and indexes");
