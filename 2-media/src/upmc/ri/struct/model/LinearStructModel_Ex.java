@@ -13,8 +13,9 @@ public class LinearStructModel_Ex<X, Y> extends LinearStructModel<X, Y> {
 	}
 	
 
-	public Y predict(X x) {
+	public Y predict(STrainingSample<X,Y> ts) {
 		double[] w = super.getParameters();
+		X x = ts.input;
 		Y yMax = null;
 		double valMax = Double.NEGATIVE_INFINITY;
 		for (Y y : this.instance.enumerateY()){

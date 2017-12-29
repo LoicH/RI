@@ -12,7 +12,7 @@ public interface IStructModel<X,Y> {
 	 * @param x The input
 	 * @return The computed output
 	 */
-	public Y predict(X x);
+	public Y predict(STrainingSample<X,Y> ts);
 	
 	public Y lai(STrainingSample<X,Y> ts);
 	
