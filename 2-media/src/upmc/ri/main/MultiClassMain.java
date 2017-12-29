@@ -15,6 +15,7 @@ import upmc.ri.struct.model.LinearStructModel_Ex;
 import upmc.ri.struct.training.ITrainer;
 import upmc.ri.struct.training.SGDTrainer;
 import upmc.ri.utils.CSVExporter;
+import upmc.ri.utils.MatrixOperations;
 
 /** Main used to test the hierarchical classification.
  */
@@ -39,9 +40,11 @@ public static void main(String[] args) {
 	System.out.println("Test labels:");
 	System.out.println(dataset.countTestLabels());
 
+
 	int iterations = 10;
 	double lambda = Math.pow(10,-8);
 	double gamma = Math.pow(10,-6);
+
 	//================================================================================
     // 0/1 model
     //================================================================================
@@ -81,42 +84,43 @@ public static void main(String[] args) {
     }
     double[][] matrix ;
 	matrix = instance.confusionMatrix(predictTestLabels, trueTestLabels);
+	double[][]normMat = MatrixOperations.normalizeCol(matrix);
 	//CSVExporter.exportMatrix(matrix, "confusion.txt");
-	CSVExporter.exportMatrix(matrix, "confusion_"+iterations+"_iterations"+gamma+"_learningRate.txt");
+	CSVExporter.exportMatrix(normMat, "confusionNorm_"+iterations+"_iterations"+gamma+"_learningRate.txt");
 	// TODO conclusion about learning how do errors spread across differents classes ?
 	// TODO Display some misclassified pictures
 	instance.showConfMatrix(matrix);
 	
 	// Grid search:
-	iterations = 10;
-	List<Double> lambdaVal = new ArrayList<Double>();
-	List<Double> gammaVal = new ArrayList<Double>();
-	
-	for(int i = -10; i<=0; i++){
-		lambdaVal.add(Math.pow(10, i));
-		gammaVal.add(Math.pow(10, i));
-	}
-	
-	double bestLambda = -1;
-	double bestGamma = -1;
-	double bestError = Double.POSITIVE_INFINITY;
-	for(double l:lambdaVal){
-		for(double g:gammaVal){
-			System.out.print("Testing lambda="+l+", gamma="+g+"... ");
-			trainer = new SGDTrainer<double[],String>(iterations, g, l, evaluator);
-			double [] trainError = trainer.train(dataset.getTrain(), model)[0];
-			double gridTrainError = trainError[iterations-1];
-			System.out.println("Score="+gridTrainError);
-			if (Double.compare(gridTrainError, bestError) < 0){
-				bestLambda = l;
-				bestGamma = g;
-				bestError = gridTrainError;
-			}
-		}
-	}
-	System.out.println("Best score: "+ bestError);
-	System.out.println("Best lambda: "+ bestLambda);
-	System.out.println("Best gamma: "+ bestGamma);
+//	iterations = 10;
+//	List<Double> lambdaVal = new ArrayList<Double>();
+//	List<Double> gammaVal = new ArrayList<Double>();
+//	
+//	for(int i = -10; i<=0; i++){
+//		lambdaVal.add(Math.pow(10, i));
+//		gammaVal.add(Math.pow(10, i));
+//	}
+//	
+//	double bestLambda = -1;
+//	double bestGamma = -1;
+//	double bestError = Double.POSITIVE_INFINITY;
+//	for(double l:lambdaVal){
+//		for(double g:gammaVal){
+//			System.out.print("Testing lambda="+l+", gamma="+g+"... ");
+//			trainer = new SGDTrainer<double[],String>(iterations, g, l, evaluator);
+//			double [] trainError = trainer.train(dataset.getTrain(), model)[0];
+//			double gridTrainError = trainError[iterations-1];
+//			System.out.println("Score="+gridTrainError);
+//			if (Double.compare(gridTrainError, bestError) < 0){
+//				bestLambda = l;
+//				bestGamma = g;
+//				bestError = gridTrainError;
+//			}
+//		}
+//	}
+//	System.out.println("Best score: "+ bestError);
+//	System.out.println("Best lambda: "+ bestLambda);
+//	System.out.println("Best gamma: "+ bestGamma);
 		
 	}
 

@@ -1,8 +1,9 @@
 \documentclass[a4paper]{article}
 
-\usepackage[english]{babel}
+\usepackage[francais]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage{tikz}
@@ -21,33 +22,34 @@
 
 \title{Rapport Recherche d'Informations Visuelles Structurées }
 
-\author{Loic HERBELOT Sébastien PEREIRA}
+\author{Loïc HERBELOT et Sébastien PEREIRA}
 
 \date{\today}
 
 \begin{document}
+
 \maketitle
 
 \begin{abstract}
-Dans ces TME nous allons nous intéresser au paradigme d'apprentissage structuré appliqué à différentes problématiques de recherche d'informations visuelles. On instanciera dans un premier temps ce problème pour résoudre des tâches de classification d'images puis dans un second temps pour résoudre un problème de ranking renvoyant les images qui correspondent à la recherche de l'utilisateur.
+Dans ces TME nous allons nous intéresser au paradigme d'apprentissage structuré appliqué à différentes problématiques de recherche d'informations visuelles. On instanciera dans un premier temps ce problème pour résoudre des tâches de classification d'images puis dans un second temps pour résoudre un problème de classement renvoyant une liste d'images qui correspondent à la recherche de l'utilisateur.
 \end{abstract}
 
 \section{Introduction}
-Contrairement à la régression où notre espace de sortie $Y$ est tel que $y \in \Re $   et à la classification où $Y$ est tel que $y \in {1, 2, 3, ..., C}$ (où C est le nombre de classes), l'apprentissage structuré définit un espace de sortie $Y$ où les $y$ sont des structures comme des arbres des graphes des ordonnancements etc.
+Contrairement à la régression où notre espace de sortie est $Y = \mathbb{R}$ et à la classification où $Y = \{1, ..., C\}$ (où $C$ est le nombre de classes), l'apprentissage structuré définit un espace de sortie $Y$ où les $y \in Y$ sont des structures comme des arbres, des graphes, des ordonnancements etc.
 \subsection{Formalisme}
 Soit $X$ l'espace d'entrée et $Y$ l'espace de sortie structuré.
-On définit une \textit{joint feature map} $\Psi(x,y)$ qui décrit le lien entre l'entrée $x$ et la sortie $y$ et une fonction de coût $\Delta(y,y')$ qui mesure la dissimilarité entre notre prédiction et la vérité terrain.
-Le problème d'apprentissage revient à trouver un modèle linéaire qui donne un score à chaque paire $(x,y)$, le score est définit par $<w, \Psi(x,y)>$
+On définit une \textit{joint feature map} $\Psi(x,y)$ qui décrit le lien entre l'entrée $x \in X$ et la sortie $y \in Y$ et une fonction de coût $\Delta(y_i,\hat{y})$ qui mesure la dissimilarité entre notre prédiction $\hat{y}$ et la vérité terrain $y_i$.
+Le problème d'apprentissage revient à trouver un modèle linéaire qui donne un score à chaque paire $(x,y)$, le score est défini par $<w, \Psi(x,y)>$, notre paramètre est $w \in \mathbb{R}^d$
 La prédiction du modèle est de la forme :
 \begin{equation}
 \hat{y}(x,w) = \arg\max_{y \in Y} <w, \Psi(x,y)>
 \end{equation}
 
-Le problème d'apprentissage s'écrit :
+De plus on souhaite avoir une régularisation sur le paramètre $w$, le problème d'apprentissage s'écrit :
 \begin{equation}
 \min_{w} \frac{1}{2} {||w||}^2 + \frac{C}{n} \sum\limits_{i=1}^n \Delta(y_i, \hat{y})
 \end{equation}
-Ce problème d'optimisation étant NP difficile, on optimise une borne supérieure convexe et sous différentiable de $\Delta(y_i, \hat{y})$ définit par :
+Ce problème d'optimisation étant NP difficile, on optimise une borne supérieure convexe et sous différentiable de $\Delta(y_i, \hat{y})$ définie par :
 \begin{equation}
 \max_{y \in Y} [\Delta(y_i, \hat{y}) + <\Psi(x_i,y),w>]  - <\Psi(x_i,y_i),w>
 \end{equation}
@@ -57,10 +59,12 @@ Le problème d'optimisation devient donc :
 \end{equation}
 
 \subsection{Algorithme d'apprentissage}
+- Utilisation d'une descente de gradient stochastique pour trouver $w$ qui minimise le pb
 
-\section{Apprentissage structuré Multi-classes et Hierarchique}
-Dans cette première partie on s'intéresse à la classification d'images à partir d'un apprentissage supervisé, on s'intéressera à l'influence du choix de la fonction de coût sur les résultats obtenus.
-\subsection{Classification Multi-classe}
+\section{Apprentissage structuré multi-classes et hiérarchique}
+Dans la première partie on s'intéresse à la classification d'images à partir d'un apprentissage supervisé, on observera l'influence du choix de la fonction de coût sur les résultats obtenus.
+
+\subsection{Classification multi-classe}
 Dans le cas d'un problème d'apprentissage structuré instancié pour les problèmes de classification multi-classe on définit la \textit{joint feature map} et la fonction de coût de la façon suivante : 
 \begin{itemize}
 \item $\Psi(x,y) = \begin{bmatrix}  0^d\\0^d\\...\\ \phi(x) \\...\\0^d\\0^d \end{bmatrix} $   
@@ -71,11 +75,12 @@ Dans le cas d'un problème d'apprentissage structuré instancié pour les probl�
     \end{array}
 \right.$
 \end{itemize}
-Où $\phi(x)$ est la représentation des images sous forme de \textit{Bag of Words}
+Où $\phi(x)$ est la représentation de l'image sous forme d'un vecteur \textit{Bag of Words}.  $\Psi(x,y)$ est donc un vecteur de taille $C * d$ rempli de $0$, sauf aux indices $i(y) * d, ..., (i(y) + 1) *d$, avec $i(y)$ le numéro associé à la classe $y$.
+
 \begin{figure}
 \centering
 \includegraphics[width=0.75\textwidth]{error.png}
-\caption{\label{fig:data} Évaluation de la 0/1 loss en train et en test sur 100 epochs.}
+\caption{\label{fig:data} Évaluation de la 0/1 loss en train et en test sur 100 itérations.}
 \end{figure}
 
 \begin{figure}
@@ -85,8 +90,8 @@ Où $\phi(x)$ est la représentation des images sous forme de \textit{Bag of Wor
 \end{figure}
 \subsection{Interprétation des résultats}
 \begin{itemize}
-\item la classe taxi (0) est très confondue avec la classe ambulance (1) et minivan (2)
-\item la classe ambulance (1) est très confondu avec la classe minivan (2)
+\item Les images 'taxi' (colonne 0) sont classées comme des 'taxi' ce qui est rassurant, mais aussi comme des 'minivan' (ligne 2) ou des 'ambulance' (ligne 1)
+\item Les 'ambulance' (colonne 1) sont classées comme des 'ambulance', mais aussi comme des 'minivan' ou des 'taxi'.
 \item la classe minivan (2) est confondue avec la classe ambulance (1)
 \item la classe acoustic guitar (3) est très confondue avec la classe electric guitar (4) et énormément confondue avec la classe harp (5)
 \item la classe electric guitar (4) est très confondue avec la classe harp (5)
