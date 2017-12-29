@@ -20,21 +20,43 @@ public class RankingInstanciation implements IStructInstantiation<List<double[]>
 	 * @return The feature map for the specific ranking problem (ie binary classification were class 1 is all wanted items and class B all others items)
 	 */
 	public double[] psi(List<double[]> x, RankingOutput y) {
+// TODO tester x.get(ranking.get(i)) 		
+//		double[] psi = new double[x.get(1).length];
+//		double[] temporaryPsi;
+//		try {
+//			for(int i: y.getPlus()){
+//				for(int j: y.getMinus()){
+//					temer poraryPsi = VectorOperations.scalarProduct(
+//							VectorOperations.substract(x.get(i),x.get(j))
+//							, y.isBefore(i, j)); 
+//					psi = VectorOperations.add(psi,temporaryPsi);
+//				}
+//			}
+//		} catch(NullPointerException e) {}
+//		
+//		return psi;
 		
-		double[] psi = new double[x.get(1).length];
-		double[] temporaryPsi;
-		try {
-			for(int i: y.getPlus()){
-				for(int j: y.getMinus()){
-					temporaryPsi = VectorOperations.scalarProduct(
-							VectorOperations.substract(x.get(i),x.get(j))
-							, y.isBefore(i, j)); 
-					psi = VectorOperations.add(psi,temporaryPsi);
+		double[] temporaryPsi = new double[x.get(0).length];
+		double[] psi = new double[x.get(0).length];
+		List<Integer> ranking = y.getRanking();
+		List<Integer> label = y.getLabelsGT();
+		for(int i=0;i<ranking.size();i++) {
+			// We want i to be in the positive example and j to be in the negative example let's ignore the others
+			if(label.get(ranking.get(i)) == -1) {continue;}
+			else {
+				for(int j=0;j<ranking.size();j++) {
+					if(label.get(ranking.get(j)) == 1) {continue;}
+					else { // Retrieving relevant indices
+						temporaryPsi = VectorOperations.substract(x.get(ranking.get(i)), x.get(ranking.get(j)));
+						if(i<j) {psi = VectorOperations.add(temporaryPsi, psi);}
+						else if(i == j){ 
+							psi = VectorOperations.add(VectorOperations.scalarProduct(temporaryPsi,-1), psi);
+						}
+					}	
 				}
 			}
-		} catch(NullPointerException e) {}
-		
-		return psi;
+		}	
+			return psi;
 	}
 
 	/**

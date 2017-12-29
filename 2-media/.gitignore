@@ -3,7 +3,8 @@
 /libs/*.jar
 .classpath
 .project
+*.orig
 error*
 confusion*
-Graphics.ipynb
-*.orig
+Train*
+Test*
