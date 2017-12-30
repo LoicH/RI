@@ -1,0 +1,35 @@
+// is better on first learning
+
+taxi 
+train = 0.44
+test = 0.27
+minivan
+train = 0.56 //
+test = 0.52
+ambulance 
+train = 0.53
+test = 0.49
+
+harp 
+train = 0.63 //
+test = 0.57
+electric 
+train = 0.44
+test = 0.37
+acoustic 
+train = 0.52
+test = 0.46 //
+
+european_fire_salamander
+train = 0.68
+test = 0.57
+tree-frog
+train = 0.52
+test = 0.45
+wood-frog
+train = 0.51 //
+test = 0.20
+
+mean 
+train = 0,53
+test = 0.43
