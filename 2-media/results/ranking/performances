@@ -1,0 +1,33 @@
+categorie 1
+TRAIN
+taxi 0.5
+ambulance 0.58
+minivan 0.64
+TEST
+taxi 0.34
+ambulance 0.58
+minivan 0.60
+
+categorie 2
+TRAIN
+acoustic 0.49
+electric 0.51
+harp 0.70
+TEST
+acoustic 0.55
+electric 0.43
+harp 0.60
+
+categorie3
+TRAIN
+wood 0.53
+tree 0.59
+salamander 0.59
+TEST 
+wood 0.21
+tree 0.52
+salamander 0.72
+
+mean
+TRAIN 0.57
+TEST 0.51

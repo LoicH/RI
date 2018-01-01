@@ -4,7 +4,4 @@
 .classpath
 .project
 *.orig
-error*
-confusion*
-Train*
-Test*
+
