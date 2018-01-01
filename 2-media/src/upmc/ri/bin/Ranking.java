@@ -27,6 +27,7 @@ public class Ranking {
 		//================================================================================
 	    // Setting data
 	    //================================================================================
+		int DimPCA = 250;
 		System.out.println("Loading data");
 		String path = "data";
 
@@ -35,7 +36,7 @@ public class Ranking {
 		for(String c: classes){
 			files.add(path + "/" + c + ".txt");
 		}
-		DataSet<double[],String> dataset = VisualIndexes.createDataSet(files);
+		DataSet<double[],String> dataset = VisualIndexes.createDataSet(files, DimPCA);
 		System.out.println("Train labels:");
 		System.out.println(dataset.countTrainLabels());
 		System.out.println("Test labels:");
@@ -48,7 +49,7 @@ public class Ranking {
 			// Learning hyper parameters
 			float lambda = (float) Math.pow(10,-6);
 			float gama = (float) Math.pow(10,1);
-			int iterations = 50;
+			int iterations = 12;
 			
 			RankingInstanciation instanceRanking = new RankingInstanciation();
 			int dimRanking = instanceRanking.getDim();
@@ -82,8 +83,8 @@ public class Ranking {
 			double[][] pr_test = RankingFunctions.recalPrecisionCurve(y_test_pred);
 			BufferedImage testPrecisionRecal = Drawing.traceRecallPrecisionCurve(y_train_pred.getNbPlus(), pr_test);
 			
-			File train_rp = new File("TrainPrecisionRecall" + query);
-			File test_rp = new File("TestPrecisionRecall-" + query);
+			File train_rp = new File("TrainPrecisionRecall" + query+".png");
+			File test_rp = new File("TestPrecisionRecall-" + query+".png");
 			try {
 				ImageIO.write(trainPrecisionRecal, "png",  train_rp);
 				ImageIO.write(testPrecisionRecal, "png", test_rp);

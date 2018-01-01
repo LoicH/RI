@@ -8,9 +8,10 @@ import upmc.ri.index.VIndexFactory;
 import upmc.ri.io.ImageNetParser;
 import upmc.ri.struct.DataSet;
 import upmc.ri.struct.STrainingSample;
+import upmc.ri.utils.PCA;
 
 public class VisualIndexes {
-	public static DataSet<double[], String> createDataSet(List<String> filenames){
+	public static DataSet<double[], String> createDataSet(List<String> filenames, int DimPCA){
 		List<STrainingSample<double[], String>> trainSamples = new ArrayList<STrainingSample<double[], String>>();
 		List<STrainingSample<double[], String>> testSamples  = new ArrayList<STrainingSample<double[], String>>();
 		// TODO Remove magic number: 800 = number of training samples
@@ -38,7 +39,8 @@ public class VisualIndexes {
 				e.printStackTrace();
 			}
 		}
-		return new DataSet<double[], String>(trainSamples, testSamples);
+		DataSet<double[], String> dataset =  new DataSet<double[], String>(trainSamples, testSamples);
+		return  PCA.computePCA(dataset, DimPCA);
 	}
 	
 

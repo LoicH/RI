@@ -63,7 +63,7 @@ public class MultiClassClassif {
 		List<String> predictTestLabels = new ArrayList<String>();
 		for(STrainingSample<double[], String> ts : dataset.getTest()) {
 			trueTestLabels.add(ts.output);
-			predictTestLabels.add(model.predict(ts.input));
+			predictTestLabels.add(model.predict(ts));
 		}
 		// TODO print all class mapping String Index to interpret confusion matrix
 		System.out.println("Corresponding class and indexes");
