@@ -13,7 +13,7 @@ import upmc.ri.io.ImageNetParser;
 public class MultiClass implements IStructInstantiation<double[], String> {
 	
 	/** Size of an input sample */
-	protected static int dim;
+	private int dim;
 	/** The set of all labels	 */
 	private Set<String> set;
 	/** Maps every label to an int */

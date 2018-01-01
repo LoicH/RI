@@ -8,7 +8,6 @@ import upmc.ri.bin.VisualIndexes;
 import upmc.ri.struct.DataSet;
 import upmc.ri.struct.Evaluator;
 import upmc.ri.struct.STrainingSample;
-import upmc.ri.struct.instantiation.MultiClass;
 import upmc.ri.struct.instantiation.MultiClassHier;
 import upmc.ri.struct.model.LinearStructModel_Ex;
 import upmc.ri.struct.training.ITrainer;
@@ -46,7 +45,7 @@ public class HierarchMain {
 	    //  Semantical Hierarchical model
 	    //================================================================================
 
-		MultiClass instanceHier = new MultiClassHier();
+		MultiClassHier instanceHier = new MultiClassHier(DimPCA);
 		int classNumbersHier = instanceHier.getSet().size();
 		
 		LinearStructModel_Ex<double[],String> model = new LinearStructModel_Ex<double[],String> (DimPCA * classNumbersHier);
