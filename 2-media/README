@@ -5,4 +5,4 @@ Pour lancer le projet :
 3 Lancer les programmes 'mains' pour effectuer les apprentissages :
 	3.1 src/upmc/ri/main/MultiClassMain.java (classification multiclasses)
 	3.2 src/upmc/ri/main/HierarchMain.java (classification hiérarchique)
-	3.3 src/upmc/ri/bin/Ranking.java (ordonnancement)
+	3.3 src/upmc/ri/main/RankingMain.java (ordonnancement)
