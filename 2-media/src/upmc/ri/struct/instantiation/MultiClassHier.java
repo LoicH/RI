@@ -8,7 +8,7 @@ public class MultiClassHier extends MultiClass{
 	double [][] closeness;
 	
 	public MultiClassHier() {
-		super();
+		super(dim);
 		RelatednessCalculator rc = new WuPalmer(new NictWordNet());
 		this.closeness = new double[this.getSet().size()][this.getSet().size()];
 		int index_line;

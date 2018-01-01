@@ -45,7 +45,7 @@ public class Evaluator<X,Y> {
 	public double evaluateError(List<STrainingSample<X, Y>> tsList){
 		double error = 0;
 		for(STrainingSample<X,Y> ts : tsList){
-			Y pred = model.predict(ts.input);
+			Y pred = model.predict(ts);
 			error += model.instantiation().delta(ts.output,pred);
 		}
 		error /= tsList.size();

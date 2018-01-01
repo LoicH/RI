@@ -13,15 +13,15 @@ import upmc.ri.io.ImageNetParser;
 public class MultiClass implements IStructInstantiation<double[], String> {
 	
 	/** Size of an input sample */
-	private int dim;
+	protected static int dim;
 	/** The set of all labels	 */
 	private Set<String> set;
 	/** Maps every label to an int */
 	private Map<String,Integer> map;
 	
 
-	public MultiClass() {
-		this.dim = 250;
+	public MultiClass(int DimPCA) {
+		this.dim = DimPCA;
 		this.set = ImageNetParser.classesImageNet();
 		this.map = new HashMap<String, Integer>();
 		
@@ -101,14 +101,6 @@ public class MultiClass implements IStructInstantiation<double[], String> {
 
 	public Set<String> getSet() {
 		return this.set;
-	}
-
-	public int getDim() {
-		return dim;
-	}
-
-	public void setDim(int dim) {
-		this.dim = dim;
 	}
 
 	public Map<String, Integer> getMap() {
