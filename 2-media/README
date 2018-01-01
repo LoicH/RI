@@ -1,8 +1,9 @@
 Pour lancer le projet :
-
-1 Charger l'archive dans Eclipse
-2 Importer les librairies contenues dans libs
-3 Lancer les programmes 'mains' pour effectuer les apprentissages :
-	3.1 src/upmc/ri/main/MultiClassMain.java (classification multiclasses)
-	3.2 src/upmc/ri/main/HierarchMain.java (classification hiérarchique)
-	3.3 src/upmc/ri/main/RankingMain.java (ordonnancement)
+1 Cloner le projet
+2 Récuperer la partie RI/2-media
+3 Charger l'archive dans Eclipse
+4 Importer les librairies contenues dans libs
+5 Lancer les programmes 'mains' pour effectuer les apprentissages :
+	5.1 src/upmc/ri/main/MultiClassMain.java (classification multiclasses)
+	5.2 src/upmc/ri/main/HierarchMain.java (classification hiérarchique)
+	5.3 src/upmc/ri/main/RankingMain.java (ordonnancement)
