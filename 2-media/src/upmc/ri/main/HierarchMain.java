@@ -23,6 +23,7 @@ public class HierarchMain {
 		//================================================================================
 	    // Setting data
 	    //================================================================================
+		int DimPCA = 250;
 		System.out.println("Loading data");
 		String path = "data";
 
@@ -31,7 +32,7 @@ public class HierarchMain {
 		for(String c: classes){
 			files.add(path + "/" + c + ".txt");
 		}
-		DataSet<double[],String> dataset = VisualIndexes.createDataSet(files);
+		DataSet<double[],String> dataset = VisualIndexes.createDataSet(files, DimPCA);
 		System.out.println("Train labels:");
 		System.out.println(dataset.countTrainLabels());
 		System.out.println("Test labels:");
@@ -39,16 +40,16 @@ public class HierarchMain {
 		// Learning hyper parameters
 		double lambda = Math.pow(10,-4);
 		double gamma = Math.pow(10,-2);
-		int iterations = 25;
+		int iterations = 30;
 		
 		//================================================================================
 	    //  Semantical Hierarchical model
 	    //================================================================================
+
 		MultiClass instanceHier = new MultiClassHier();
 		int classNumbersHier = instanceHier.getSet().size();
-		int dimHier = instanceHier.getDim();
 		
-		LinearStructModel_Ex<double[],String> model = new LinearStructModel_Ex<double[],String> (dimHier * classNumbersHier);
+		LinearStructModel_Ex<double[],String> model = new LinearStructModel_Ex<double[],String> (DimPCA * classNumbersHier);
 		model.setInstance(instanceHier);
 		
 		Evaluator<double[],String> evaluator = new Evaluator<double[], String>();
@@ -67,7 +68,7 @@ public class HierarchMain {
 		List<String> predictTestLabels = new ArrayList<String>();
 		for(STrainingSample<double[], String> ts : dataset.getTest()) {
 			trueTestLabels.add(ts.output);
-			String pred = model.predict(ts.input);
+			String pred = model.predict(ts);
 			predictTestLabels.add(pred);
 		}
 

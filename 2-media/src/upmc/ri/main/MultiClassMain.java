@@ -16,6 +16,7 @@ import upmc.ri.struct.training.ITrainer;
 import upmc.ri.struct.training.SGDTrainer;
 import upmc.ri.utils.CSVExporter;
 import upmc.ri.utils.MatrixOperations;
+import upmc.ri.utils.PCA;
 
 /** Main used to test the hierarchical classification.
  */
@@ -26,6 +27,7 @@ public static void main(String[] args) {
 	//================================================================================
     // Setting data
     //================================================================================
+	int DimPCA = 250;
 	System.out.println("Loading data");
 	String path = "data";
 
@@ -34,7 +36,7 @@ public static void main(String[] args) {
 	for(String c: classes){
 		files.add(path + "/" + c + ".txt");
 	}
-	DataSet<double[],String> dataset = VisualIndexes.createDataSet(files);
+	DataSet<double[],String> dataset = VisualIndexes.createDataSet(files, DimPCA);
 	System.out.println("Train labels:");
 	System.out.println(dataset.countTrainLabels());
 	System.out.println("Test labels:");
@@ -42,16 +44,15 @@ public static void main(String[] args) {
 
 
 	int iterations = 10;
-	double lambda = Math.pow(10,-8);
-	double gamma = Math.pow(10,-6);
+	double lambda = Math.pow(10,-2);
+ 	double gamma = Math.pow(10,-6);
 
 	//================================================================================
     // 0/1 model
     //================================================================================
-	MultiClass instance = new MultiClass(); 
-	int dim = instance.getDim();
+	MultiClass instance = new MultiClass(DimPCA); 
 	int classNumbers = instance.getSet().size();
-	LinearStructModel_Ex<double[],String> model = new LinearStructModel_Ex<double[],String> (dim * classNumbers);
+	LinearStructModel_Ex<double[],String> model = new LinearStructModel_Ex<double[],String> (DimPCA * classNumbers);
 	model.setInstance(instance);
 	
 	Evaluator<double[],String> evaluator = new Evaluator<double[], String>();
