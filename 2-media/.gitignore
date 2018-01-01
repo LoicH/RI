@@ -1,6 +1,4 @@
 /bin/
-/data/*.txt
-/libs/*.jar
 .classpath
 .project
 *.orig
