@@ -156,8 +156,25 @@ class PrecisionNDocuments(EvalMeasure):
                 if result in trueRels[0:n]:
                     precision += 1
             return precision/n
+# TODO add subthemes in the returned elements of 'getRelevantResults' to be able to compute the Cluster Recall
+class ClusterRecallNDocuments(EvalMeasure):
+    def __init__(self, irlist):
+        super().__init__(irlist)
 
-
+    def eval(self, n, verbose=False):
+        """ Compute the performance of a model.
+                :return: The cluster recall at the n'th rank"""
+        # Truely relevant results for the query:
+        trueRels = self.irlist.getQuery().getRelevants()
+        # Results we found for the query:
+        results = super().getRelevantResults()
+        # Unique subthemes in the real relevant results
+        subtheme_set = set()
+        for elt in list(trueRels.values()):
+            subtheme_set.add(elt["subtheme"])
+        real_nb_cluster = len(subtheme_set)
+        return None
+        
 class EvalIRModel():
     def __init__(self, queries, irmodels, measures, 
                  stemmer=TextRepresenter.PorterStemmer()):
