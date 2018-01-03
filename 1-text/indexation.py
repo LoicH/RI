@@ -285,7 +285,10 @@ class InMemoryIndex(Index):
             doc = parser.nextDocument()
 
     def getTfsForDoc(self, docId):
-        return self.docs[docId]
+        if docId not in self.docs.keys():
+            return []
+        else:
+            return self.docs[docId]
 
     def getTfsForStem(self, stem):
         if stem not in self.stems.keys():
