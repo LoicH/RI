@@ -134,6 +134,30 @@ class AveragePrecision(EvalMeasure):
             i += 1
         return s/len(trueRels)
 
+class PrecisionNDocuments(EvalMeasure):
+    def __init__(self, irlist):
+        super().__init__(irlist)
+
+    def eval(self, n, verbose=False):
+        """ Compute the performance of a model.
+                :return: The precision at the n'th rank"""
+        # Truely relevant results for the query:
+        trueRels = list(self.irlist.getQuery().getRelevants().keys())
+        # Results we found for the query:
+        results = super().getRelevantResults()
+        precision = 0
+        if len(trueRels) < n:
+            for result in results[0:len(trueRels)]:
+                if result in trueRels:
+                    precision += 1
+            return precision/len(trueRels)
+        else:
+            for result in results[0:n]:
+                if result in trueRels[0:n]:
+                    precision += 1
+            return precision/n
+
+
 class EvalIRModel():
     def __init__(self, queries, irmodels, measures, 
                  stemmer=TextRepresenter.PorterStemmer()):
