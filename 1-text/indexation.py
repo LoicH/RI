@@ -288,7 +288,10 @@ class InMemoryIndex(Index):
         return self.docs[docId]
 
     def getTfsForStem(self, stem):
-        return self.stems[stem]
+        if stem not in self.stems.keys():
+            return []
+        else:
+            return self.stems[stem]
 
 
         
