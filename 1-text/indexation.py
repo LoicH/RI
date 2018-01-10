@@ -195,9 +195,7 @@ class Index(object):
             repres = invIndex.read(self.stems[stem]["len"])             
             # 'repres' should look like: "[stem]{[doc]:[freq], ...}\n"
             if not repres.startswith(stem):
-                print("Error with the representation. Exit")
-                exit()
-                
+                print("Error with the representation.")                
         # Parsing the representation:
         # List of strings of the format "[docId]:[freq]":
         docFreq = repres.strip(stem)[1:-2].split(',')

@@ -2,4 +2,6 @@
 .classpath
 .project
 *.orig
-
+*.png
+error_*.txt
+confusion*.txt

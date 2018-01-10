@@ -3,6 +3,7 @@
 
 import numpy as np
 import TextRepresenter
+import itertools
 
 class IRList():
     """ Contains a query and the scores found for this query """
@@ -221,3 +222,39 @@ class EvalIRModel():
                     print((np.mean(eval_scores), np.std(eval_scores)))
                 results[(irmodel_name, measure_name)] = (np.mean(eval_scores), np.std(eval_scores))
         return results
+
+
+
+def dict_combinations(dic):
+    keys = dic.keys()
+    #print(keys)
+    values = [dic[key] for key in keys]
+    #print("values:", list(values), ".")
+    #for combination in itertools.product(*values):
+        #print(combination)
+    combinations = [dict(zip(keys, combination)) for combination in itertools.product(*values)]
+    return combinations
+
+def gridsearch(model_class, param_grid, queries, measure_object, verbose=False):
+    """
+    :param model_class: modeles.Vectoriel for instance (the class, not an instance)
+    :param param_grid: dict of {string:iterable}
+    :param queries: list of Query objects
+    :param measure_class: evaluation.AveragePrecision() for instance
+    """
+    params = []
+    irmodels = {}
+    for i, comb in enumerate(dict_combinations(param_grid)):
+        params.append(comb)
+        irmodels[i] = model_class(**comb)
+    eval_models = EvalIRModel(queries, irmodels, {'measure':measure_object})
+    if verbose:
+        print("Calling eval()")
+        scores = eval_models.eval(verbose=verbose)
+        for k,v in scores.items():
+            print(params[k[0]])
+            print("--->", v[0])
+    else:
+        scores = eval_models.eval()
+    best_irmodel = max(scores.keys(), key=(lambda key: scores[key][0]))[0]
+    return params[best_irmodel]

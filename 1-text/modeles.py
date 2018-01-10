@@ -123,7 +123,7 @@ class Vectoriel(IRmodel):
 
 
 class UnigramLanguage(IRmodel):
-    def __init__(self, index, regularization=1):
+    def __init__(self, index, regularization=0.9):
         """ Create a new unigram model.
         :param index: The Index object that parsed all files
         :param txt_repr: a TextRepresenter object
@@ -174,6 +174,8 @@ class UnigramLanguage(IRmodel):
             if word in doc_model:
                 in_log += self.reg * doc_model[word]
 #            print("in log:", in_log)
+            if in_log == 0:
+                print("Warning in_log = 0, docid=%s, word=%s" % (doc_id, word))
             score += q_freq * np.log(in_log)
 #            else:
 #                score = -np.infty
