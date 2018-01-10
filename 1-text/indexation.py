@@ -254,11 +254,14 @@ class Index(object):
 
     def getSuccNodes(self, doc_id):
         """
+        Get docs pointed by a document
         :return: List of ints of document ID
         """
         return np.array(self.network[int(doc_id)-1,:].nonzero()[1], dtype=int)+1
         
     def getPrevNodes(self, doc_id):
+        """ Get docs that point to a document
+        """
         return np.array(self.network[:,int(doc_id)-1].nonzero()[0], dtype=int)+1
 
 class InMemoryIndex(Index):

@@ -7,63 +7,72 @@
 from scipy.sparse import dok_matrix
 import numpy as np
 
-class RandomSurfer():
-    def __init__(self, index, seeds, prevNumber):
+class RandomWalker():
+    def __init__(self, index, seeds, prevNeighbours):
         """
-        :param seeds: List of docs ID (strings)
+        :param seeds: List of docs title (strings)
+        :param prevNeighbours: Number of previous neighbours to take
         """
         self.index = index
         self.seeds = seeds
-        self.prevNumber = prevNumber
-        self.nodes = set() # sets of node id
-        self.graph = None
+        self.prevNeighbours = prevNeighbours
+        self.nodes = set(seeds) # sets of node id
+        self.nodeList = []
+        self.graph = None #self.graph[i,j] = 1 if i→j
+        self.idxMap = {}
+        
+        # Add all desired nodes:
+        for seedTitle in self.seeds:
+            # Add all childs of seedTitle in nodes: 
+            self.nodes |= set(self.index.getSuccNodes(seedTitle))
+            # Add some parents of seedTitle:
+            self.nodes |= set(np.random.choice(self.index.getPrevNodes(seedTitle), 
+                                               size=self.prevNeighbours))
+        # Assign an index to each node:
+        i = 0
+        for node in self.nodes:
+            self.idxMap[node] = i
+            self.nodeList.append(node)
+            i += 1
+        # Construct the adjacency matrix:
+        self.graph = dok_matrix((i,i))
+        for node in self.nodes:
+            nodeIdx = self.idxMap[node]
+            # Get children, keep only the ones in self.nodes
+            children = set(self.index.getSuccNodes(node)) & self.nodes
+            childrenIdx = [self.idxMap[c] for c in children]
+            self.graph[nodeIdx, childrenIdx] = 1
+
+
+class PageRank(RandomWalker):
+    def __init__(self, index, seeds, prevNeighbours):
+        super().__init__(index, seeds, prevNeighbours)
     
-    def addDoc(self, docTitle, addNew=False):
-        """ Add a document in the graph.
-        :param docTitle: The title of the doc (typically string between 1 and docNbr)
-        :param addNew: optional, bool (default is False)
-            Whether or not to add the new neighbors in the nodes set.
+    def getScores(self, nIter=100, teleportProba=0.1):
+        """ Return the PageRank score of every node
+        :param nIter: Number of iterations
+        :return: Dictionary of {node ID (str) : score}
         """
-        docId = int(docTitle) - 1
-        self.nodes.add(docId)
-        for succTitle in self.index.getSuccNodes(docTitle):
-            succId = int(succTitle) -1
-            if addNew or succId in self.nodes:
-                self.nodes.add(succId)
-                self.graph[docId, succId] = 1
-            
-        
-    def getGraph(self):
-        if self.graph is None:
-            nbDocs = len(self.index.getDocsID())
-            self.graph = dok_matrix((nbDocs, nbDocs))
-            for docTitle in self.seeds:
-                self.addDoc(docTitle, addNew=True)
-                for prevTitle in np.random.choice(self.index.getPrevNodes(docTitle), 
-                                                  size=self.prevNumber):
-                    self.addDoc(prevTitle, addNew=False)
-        return self.graph
-        
-
-
-class PageRank(RandomSurfer):
-    def __init__(self, index, seeds, prevNumber):
-        super().__init__(index, seeds, prevNumber)
-    
-    def solve(self, nIter=100):
-        graph = self.getGraph().copy()
-        for i in np.unique(graph.nonzero()[0]):
+        # Set every element in the graph matrix to either 1/N or 1/l_j
+        graph = self.graph.toarray()
+        N = len(self.nodes)
+        print(graph.shape)
+        for i in range(N):
+            if np.alltrue(graph[i] == 0):
+                graph[i] = np.ones(N)
             s = (graph[i].sum())
-            for j in graph[i].nonzero()[1]:
-                graph[i,j] /= s
+            graph[i] /= s
+        print(graph)
+        # Do the power method to find the scores:
+        scores = np.ones(N)/N
+        for i in range(nIter):
+            scores = (1-teleportProba) * graph.dot(scores)
+            scores += teleportProba/N * np.ones(N)
         
-
-        u = np.zeros(graph.shape[0])
-        u[list(self.nodes)] = 1/(len(self.nodes))
-        eigenVect = u*(graph**nIter)
-        return {str(nodeId+1):eigenVect[nodeId] for nodeId in self.nodes}
+        return {self.nodeList[i] : scores[i] for i in range(N)}
+                        
     
-class HITS(RandomSurfer):
-    def __init__(self, index, seeds, prevNumber):
-        super().__init(index, seeds, prevNumber)
+class HITS(RandomWalker):
+    def __init__(self, index, seeds, prevNeighbours):
+        super().__init(index, seeds, prevNeighbours)
     
