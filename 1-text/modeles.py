@@ -6,6 +6,7 @@
 
 import numpy as np
 import operator
+import graphes
 
 class Weighter():
     def __init__(self, index):
@@ -223,3 +224,33 @@ class Okapi(IRmodel):
             norm += s**2
         scores = {k:v/np.sqrt(norm) for k,v in scores.items()}
         return scores
+    
+class PageRankModel(IRmodel):
+    def __init__(self, index, baseModel, seedsNbr, parentsNbr):
+        super().__init__(index)
+        self.baseModel = baseModel
+        self.seedsNbr = seedsNbr
+        self.parentsNbr = parentsNbr
+    
+    def getScores(self, query, normalized=True):
+        baseRanking = self.baseModel.getRanking(query)
+        seeds = [seed for (seed, score) in baseRanking[:self.seedsNbr]]
+        pagerank = graphes.PageRank(self.index, seeds, self.parentsNbr)
+        return pagerank.getScores(nIter=100, teleportProba=0.1)
+        
+class HitsModel(IRmodel):
+    def __init__(self, index, baseModel, seedsNbr, parentsNbr):
+        super().__init__(index)
+        self.baseModel = baseModel
+        self.seedsNbr = seedsNbr
+        self.parentsNbr = parentsNbr
+    
+    def getScores(self, query, normalized=True):
+#        print("retrieve base ranking")
+        baseRanking = self.baseModel.getRanking(query)
+        seeds = [seed for (seed, score) in baseRanking[:self.seedsNbr]]
+#        print("retrieved base ranking, call HITS")
+        hits = graphes.HITS(self.index, seeds, self.parentsNbr)
+#        print("call getScores")
+        return hits.getScores(nIter=100)
+        

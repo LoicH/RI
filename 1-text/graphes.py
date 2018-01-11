@@ -23,17 +23,21 @@ class RandomWalker():
         
         # Add all desired nodes:
         for seedTitle in self.seeds:
+            self.nodes.add(seedTitle)
             # Add all childs of seedTitle in nodes: 
             self.nodes |= set(self.index.getSuccNodes(seedTitle))
             # Add some parents of seedTitle:
-            self.nodes |= set(np.random.choice(self.index.getPrevNodes(seedTitle), 
-                                               size=self.prevNeighbours))
+            parents = self.index.getPrevNodes(seedTitle)
+            if len(parents) > 0:
+                self.nodes |= set(np.random.choice(parents, 
+                                                   size=self.prevNeighbours))
         # Assign an index to each node:
         i = 0
         for node in self.nodes:
             self.idxMap[node] = i
             self.nodeList.append(node)
             i += 1
+        print("%d nodes in the sub-graph" % i)
         # Construct the adjacency matrix:
         self.graph = dok_matrix((i,i))
         for node in self.nodes:
@@ -56,18 +60,15 @@ class PageRank(RandomWalker):
         # Set every element in the graph matrix to either 1/N or 1/l_j
         graph = self.graph.toarray()
         N = len(self.nodes)
-        print("%d nodes" % N)
         for i in range(N):
             if np.alltrue(graph[i] == 0):
                 graph[i] = np.ones(N)
             s = (graph[i].sum())
             graph[i] /= s
-        print("Graph:\n", graph)
-        print("Nodes:", self.nodeList)
         # Do the power method to find the scores:
         scores = np.ones(N)/N
         for i in range(nIter):
-            scores = (1-teleportProba) * graph.dot(scores)
+            scores = (1-teleportProba) * scores.dot(graph)
             scores += teleportProba/N * np.ones(N)
         
         return {self.nodeList[i] : scores[i] for i in range(N)}
@@ -75,5 +76,22 @@ class PageRank(RandomWalker):
     
 class HITS(RandomWalker):
     def __init__(self, index, seeds, prevNeighbours):
-        super().__init(index, seeds, prevNeighbours)
+        super().__init__(index, seeds, prevNeighbours)
     
+    def getScores(self, nIter=10):
+        N_nodes = len(self.nodes)
+        authorities = np.ones(N_nodes)
+        hubs = np.ones(N_nodes)
+        for i in range(nIter):
+            authorities /= np.linalg.norm(authorities)
+            hubs /= np.linalg.norm(hubs)
+            new_auth = np.zeros_like(authorities)
+            new_hubs = np.zeros_like(hubs)
+            for node in range(N_nodes):
+                parents = self.graph[:,node].nonzero()[0]
+                children = self.graph[node,:].nonzero()[1] 
+                new_auth[node] = sum([authorities[pred] for pred in parents])
+                new_hubs[node] = sum([hubs[succ] for succ in children])
+            authorities = new_auth
+            hubs = new_hubs
+        return {self.nodeList[i] : authorities[i] for i in range(N_nodes)}

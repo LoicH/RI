@@ -4,6 +4,7 @@
 import numpy as np
 import TextRepresenter
 import itertools
+import time
 
 class IRList():
     """ Contains a query and the scores found for this query """
@@ -199,9 +200,11 @@ class EvalIRModel():
         """
         all_query_scores = {}
         results = {}
-        for irmodel_name, irmodel in self.irmodels.items():
+        N_models = len(self.irmodels)
+        N_measures = len(self.measures)
+        for i, (irmodel_name, irmodel) in enumerate(self.irmodels.items()):
             if verbose:
-                print("IRModel:", irmodel_name)
+                print("[%3d/%3d] IRModel '%s'" % (i, N_models, irmodel_name))
             for q in self.queries:
                 q_scores = irmodel.getScores(self.stemmer.
                             getTextRepresentation(q.getText()))
@@ -245,7 +248,9 @@ def gridsearch(model_class, param_grid, queries, measure_object, verbose=False):
     """
     params = []
     irmodels = {}
-    for i, comb in enumerate(dict_combinations(param_grid)):
+    all_combinations = dict_combinations(param_grid)
+    N_comb = len(all_combinations)
+    for i, comb in enumerate(all_combinations):
         params.append(comb)
         irmodels[i] = model_class(**comb)
     eval_models = EvalIRModel(queries, irmodels, {'measure':measure_object})
