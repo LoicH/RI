@@ -157,6 +157,7 @@ class PrecisionNDocuments(EvalMeasure):
                 if result in trueRels[0:n]:
                     precision += 1
             return precision/n
+        
 # TODO add subthemes in the returned elements of 'getRelevantResults' to be able to compute the Cluster Recall
 class ClusterRecallNDocuments(EvalMeasure):
     def __init__(self, irlist):

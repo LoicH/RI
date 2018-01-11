@@ -31,8 +31,10 @@ class Index(object):
         self.stems = {}
         # Dict {int(doc): string("source path;position in source;text length")}
         self.docFrom = {}
-        # sparse matrix, m[i,j] = 1 iff link from 'i' to 'j'
+        # sparse matrix, m[i,j] = nbr of links from i to j
         self.network = {}
+        # Inverse doc frequencies:
+        self.idf = {}
         
         self.meanDocLen = None
         
@@ -100,12 +102,14 @@ class Index(object):
                 # Parsing the link to build the network:
                 # doc.others['links'] is  '2\t5\t2;3\t5\t2;4\t5\t2;'
                 links = doc.others['links'].split(';') # list of strings
-                neighbours = [s.split()[0] for s in links if len(s) > 0]
+                # neighbours is the dict {link_dest: nbr of links}
+                neighbours = dict(zip(*np.unique([s.split()[0] for s in links if len(s) > 0], 
+                                                  return_counts=True)))
                 titleId = int(title) -1
-                for dest in np.unique(neighbours):
+                for dest, linkNbr in neighbours.items():
                     destId = int(dest) -1
                     if titleId != destId and destId < len(self.docs):
-                        self.network[int(title)-1, int(dest)-1] = 1
+                        self.network[int(title)-1, int(dest)-1] = linkNbr
                     elif destId >= len(self.docs) and verbose:
                         print("Warning, could not store link %s -> %s" % (title, dest))
                 doc = self.parser.nextDocument()
@@ -205,6 +209,17 @@ class Index(object):
         docFreq = {int(docId):int(freq) for (docId, freq) in docFreq}
         return docFreq
         
+    def computeIdf(self, stem):
+        """ Compute the inverse doc frequency for a stem"""
+        if stem not in self.idf:
+            n = len(self.getTfsForStem(stem))
+            if n == 0:
+                return 0
+            else :
+                self.idf[stem] = np.log(len(self.docs)/n)
+        return self.idf[stem]
+
+
     def probIdf(self, stem):
         """ Return a variant of the IDF weight, the probabilistic IDF.
         [see here: https://en.wikipedia.org/wiki/Tf%E2%80%93idf#Inverse_document_frequency_2] 
@@ -267,8 +282,7 @@ class Index(object):
 class InMemoryIndex(Index):
 
     def __init__(self, srcFile, parser, txtRepr):
-        self.docs = {}
-        self.stems = {}
+        super().__init__("index",".")
         parser.initFile(srcFile)
         doc = parser.nextDocument()
         while doc is not None:

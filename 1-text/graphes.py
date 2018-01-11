@@ -56,13 +56,14 @@ class PageRank(RandomWalker):
         # Set every element in the graph matrix to either 1/N or 1/l_j
         graph = self.graph.toarray()
         N = len(self.nodes)
-        print(graph.shape)
+        print("%d nodes" % N)
         for i in range(N):
             if np.alltrue(graph[i] == 0):
                 graph[i] = np.ones(N)
             s = (graph[i].sum())
             graph[i] /= s
-        print(graph)
+        print("Graph:\n", graph)
+        print("Nodes:", self.nodeList)
         # Do the power method to find the scores:
         scores = np.ones(N)/N
         for i in range(nIter):

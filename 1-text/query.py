@@ -107,35 +107,48 @@ class QueryParser:
     def extractRelevData(self, qryId):
         """ Extract the data from the .rel file"""
 
-        def startingNumber(s):
-            """Returns whether s starts with n (string)"""
-            return int(re.match("^0*(\d*)", s).group(1))
-
+        def matchFourNumbers(line):
+            """ Return the first number of None"""
+            search = re.search("^\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)\s*$", line)
+            if search is None:
+                return None
+            else: 
+                return int(search.group(1))
+    
         # print("Extract relevance data for query #" + qryId)
         line = self.relFile.readline()
+        
+        firstNb = matchFourNumbers(line)
         while (self.relFile.tell() < self.relLen and
-               startingNumber(line) < int(qryId)):
+               firstNb is None):
             # print(">", line, end='')
             line = self.relFile.readline()
-
+            firstNb = matchFourNumbers(line)
+            
+            
         # print("self.relFile.tell() = %d, self.relLen = %d" % (self.relFile.tell(), self.relLen))
         if self.relFile.tell() == self.relLen:
-            if startingNumber(line) == int(qryId): # the last line of the file contained data
+            if matchFourNumbers(line) == int(qryId): # the last line of the file contained data
                 return line
             else:
+                print("Reached end of file with wrong query id")
                 return None
         # print("Found the start:", line)
+        
+        # Found the start of the relevant data for this query
+        # Search for the rest of data
         queryData = line
-
         # print("Reading the relevances")
         cursor = self.relFile.tell()
         line = self.relFile.readline()
+        firstNb = matchFourNumbers(line)
         while (self.relFile.tell() < self.relLen and
-               startingNumber(line) == int(qryId)) :
+               firstNb == int(qryId)) :
             queryData += line
             # print(">", line, end='')
             cursor = self.relFile.tell()
             line = self.relFile.readline()
+            firstNb = matchFourNumbers(line)
 
         # Reposition the cursor before the new start tag
         self.relFile.seek(cursor)
@@ -178,7 +191,7 @@ class QueryParserCACM(QueryParser):
         for line in data.split('\n'):
             if len(line) >1:
                 search = re.search("^\s*(\d+)\s*(\d+)\s*(\d+)\s*(\d+)\s*$", line)
-                qryId, docId, subtheme, score = search.groups()
+                qryId, docId, score, subtheme = search.groups()
                 dic[int(docId)] = {"subtheme":int(subtheme),
                                    "score":float(score)}
         return dic

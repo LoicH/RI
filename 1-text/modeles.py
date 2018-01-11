@@ -30,9 +30,9 @@ class BinaryWeighter(Weighter):
         stems = self.index.getTfsForDoc(docId)
         return stems
 
-    def getDocWeightsForStem(self, stem):
-        docFreq = self.index.getTfsForStem(stem)
-        return docFreq
+#    def getDocWeightsForStem(self, stem):
+#        docFreq = self.index.getTfsForStem(stem)
+#        return docFreq
 
     def getWeightsForQuery(self, query):
         return {stem:1 for stem in query.keys() }
@@ -47,23 +47,14 @@ class TfidfWeighter(Weighter):
         stems = self.index.getTfsForDoc(docId)
         return stems
 
-    def getDocWeightsForStem(self, stem):
-        docFreq = self.index.getTfsForStem(stem)
-        return docFreq
+#    def getDocWeightsForStem(self, stem):
+#        docFreq = self.index.getTfsForStem(stem)
+#        return docFreq
 
     def getWeightsForQuery(self, query):
         """
         :param query: dict representing the query: {stem:frequence}"""
-        docsID = self.index.getDocsID()
-        N = len(docsID)
-        
-        def idf(stem):
-            n = len(self.index.getTfsForStem(stem))
-            if n == 0:
-                return 0
-            else :
-                return np.log(N/n)
-        return {stem:idf(stem) for stem in query.keys() }
+        return {stem:self.index.computeIdf(stem) for stem in query.keys() }
 
 
 
@@ -80,7 +71,7 @@ class IRmodel():
     def getRanking(self, query):
         """ Compute the of documents for the query
         :return: A list of tuples (doc id, score) sorted by score """
-        scores = self.getScores(query, True)
+        scores = self.getScores(query, normalized=True)
         return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
 
     def dictProduct(a,b):
@@ -94,7 +85,6 @@ class Vectoriel(IRmodel):
     def __init__(self, index, weighter):
         super().__init__(index)
         self.weighter = weighter
-        self.norms = {}
 
 
     def getScores(self, query, normalized=True):
@@ -106,18 +96,13 @@ class Vectoriel(IRmodel):
         queryWeights = self.weighter.getWeightsForQuery(query)
         for i in docsID:
             docWeights = self.weighter.getDocWeightsForDoc(i)
-            score = IRmodel.dictProduct(docWeights,
+            scores[i] = IRmodel.dictProduct(docWeights,
                                         queryWeights)
-            norm = 1
-            if normalized:
-                if i in self.norms:
-                    norm = self.norms[i]
-                else:
-                    norm = IRmodel.dictNorm(docWeights)
-                    self.norms[i] = norm
-                norm *= IRmodel.dictNorm(queryWeights)
 
-                scores[i] = score/norm
+        if normalized:
+            s = np.sum(list(scores.values()))   
+            for docId, score in scores.items():
+                scores[docId] = score/s
         return scores
 
 
