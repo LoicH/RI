@@ -63,16 +63,21 @@ class IRmodel():
     def __init__(self, index):
         self.index = index
 
+    def score(self, query, docId):
+        """Compute score between one query and one doc"""
+        raise NotImplementedError("score() is an abstract method.")
+        
     def getScores(self, query, normalized):
         """
         :param query: Dictionary of term frequencies        
         :return: a dict {docID: score}"""
-        raise NotImplementedError("Abstract method")
-    
+        raise NotImplementedError("Abstract method.")
+
+        
     def getRanking(self, query):
         """ Compute the of documents for the query
         :return: A list of tuples (doc id, score) sorted by score """
-        scores = self.getScores(query, normalized=True)
+        scores = self.getScores(query)
         return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
 
     def dictProduct(a,b):
@@ -87,23 +92,31 @@ class Vectoriel(IRmodel):
         super().__init__(index)
         self.weighter = weighter
 
+    def score(self, query, docId, normalized=True):
+        queryWeights = self.weighter.getWeightsForQuery(query)
+        docWeights = self.weighter.getDocWeightsForDoc(docId)
+        norm = 1
+        if normalized:
+            norm = IRmodel.dictNorm(queryWeights) * IRmodel.dictNorm(docWeights)
+        product = IRmodel.dictProduct(docWeights, queryWeights)
+        return product / norm
 
     def getScores(self, query, normalized=True):
         """
-        :param query: dict {stem: frequence}
+        :param query: dict {stem: frequency}
         :return: a dict {docID: score}"""
         docsID = self.index.getDocsID()
         scores = {}
         queryWeights = self.weighter.getWeightsForQuery(query)
         for i in docsID:
             docWeights = self.weighter.getDocWeightsForDoc(i)
-            scores[i] = IRmodel.dictProduct(docWeights,
-                                        queryWeights)
+            norm = 1
+            if normalized:
+                norm = IRmodel.dictNorm(queryWeights) * IRmodel.dictNorm(docWeights)
+            product = IRmodel.dictProduct(docWeights, queryWeights)
 
-        if normalized:
-            s = np.sum(list(scores.values()))   
-            for docId, score in scores.items():
-                scores[docId] = score/s
+            scores[i] = product/norm
+
         return scores
 
 
@@ -232,6 +245,15 @@ class PageRankModel(IRmodel):
         self.seedsNbr = seedsNbr
         self.parentsNbr = parentsNbr
     
+    def score(self, query, docId):
+        baseRanking = self.baseModel.getRanking(query)
+        seeds = [seed for (seed, score) in baseRanking[:self.seedsNbr]]
+        if docId not in seeds:
+            seeds.append(docId)
+        pagerank = graphes.PageRank(self.index, seeds, self.parentsNbr)
+        return pagerank.getScores(nIter=100, teleportProba=0.1)[docId]
+
+    
     def getScores(self, query, normalized=True):
         baseRanking = self.baseModel.getRanking(query)
         seeds = [seed for (seed, score) in baseRanking[:self.seedsNbr]]
@@ -245,6 +267,17 @@ class HitsModel(IRmodel):
         self.seedsNbr = seedsNbr
         self.parentsNbr = parentsNbr
     
+    
+    def score(self, query, docId):
+        baseRanking = self.baseModel.getRanking(query)
+        seeds = [seed for (seed, score) in baseRanking[:self.seedsNbr]]
+        if docId not in seeds:
+            seeds.append(docId)
+        hits = graphes.HITS(self.index, seeds, self.parentsNbr)
+#        print("call getScores")
+        return hits.getScores(nIter=10)[docId]
+
+    
     def getScores(self, query, normalized=True):
 #        print("retrieve base ranking")
         baseRanking = self.baseModel.getRanking(query)
@@ -252,5 +285,5 @@ class HitsModel(IRmodel):
 #        print("retrieved base ranking, call HITS")
         hits = graphes.HITS(self.index, seeds, self.parentsNbr)
 #        print("call getScores")
-        return hits.getScores(nIter=100)
+        return hits.getScores(nIter=10)
         

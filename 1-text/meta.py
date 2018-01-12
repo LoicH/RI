@@ -3,7 +3,8 @@
 """
 @author: Sébastien P
 """
-from .modeles import IRmodel
+from modeles import IRmodel
+import graphes
 import random
 import numpy as np
 import operator
@@ -11,15 +12,46 @@ import operator
 class Featurer():
     """"""
     def __init__(self, index):
-        '''
-        :param
-        '''
         self.index = index
         # A dictionnary of {docId : Score} for a given model
         self.features = {}
 
-    def getFeatures(self):
+    def getFeatures(self, docId, query):
+        """
+        :param query: dict of {stem: frequency}
+        """
         raise NotImplementedError ("Abstract method")
+        
+class DocLenFeaturer(Featurer):
+    def __init__(self, index):
+        super().__init__(index)
+    def getFeatures(self, docId, query):
+        return 1/self.index.getDocsLen(docId)
+    
+class QueryLenFeaturer(Featurer):
+    def __init__(self, index):
+        super().__init__(index)
+    def getFeatures(self, docId, query):
+        return 1/sum(query.values())
+    
+class PageRankFeaturer(Featurer):   
+    """ Doesn't depend on a query"""
+    def __init__(self, index):
+        super().__init__(index)
+        self.pagerankScores = {}
+        pagerank = graphes.PageRank(self.index, 
+                                    seeds=self.index.getDocsId(), 
+                                    prevNeighbours=0)
+        self.pagerankScores = pagerank.getScores()
+        # Already scaled
+#        norm = IRmodel.dictNorm(self.pagerankScores)
+#        for key, value in self.pagerankScores.items():
+#            self.pagerankScores[key] = value/norm
+        
+        
+    def getFeatures(self, docId, query):
+        return self.pagerankScores[docId]
+
 
 class FeaturerModel(Featurer):
     """"""
@@ -28,99 +60,81 @@ class FeaturerModel(Featurer):
         :param index: the reference to an index object
         :param model: the reference to a RI model (TfIdf weigther, Okapi, PageRank)
         '''
-        super.__init__(index)
+        super().__init__(index)
         self.model = model
 
     def getFeatures(self, idDoc, query):
-        '''
-
-        :param idDoc: the document id
-        :param query: a query object
-        :return: the scores of each document in the index for the query object given a specific model
-        '''
-        # Get the dictionnary {docId : Score}
-        result = self.model.getScores(query)
-        self.features = result
-        return result
+        return self.model.score(query, idDoc)
 
 class FeaturerList(Featurer):
-    def __init__(self, index, model_list):
-        super.__init__(index)
-        # A dictionnary of {model : {docId : score}}
-        self.list_features = {}
-        self.model_list = model_list
+    """Aggregates diverse features"""
+    def __init__(self, index, featurers):
+        super().__init__(index)
+        self.featurers = featurers
+        print("Featurers:", featurers)
 
-    def getFeatures(self, query):
-        '''
-        :param model_list: list of models
-        :param idDoc: the document id
-        :param query: a query object
-        :return: update a dictionnary {model : features}, features = {docId : Score}
-        '''
-        for model in self.model_list:
-            self.list_features[model] = model.getScores(query)
+    def getFeatures(self, idDoc, query):
+        features = []
+        for featurer in self.featurers:
+            features.append(featurer.getFeatures(idDoc, query))
+        return np.array(features)
 
 class MetaModel(IRmodel):
-    def __init__(self, index, featurer_list):
-        super.__init__(index)
+    def __init__(self, index, featurer_list, stemmer):
+        """
+        :param featurer_list: FeaturerList object
+        """
+        super().__init__(index)
         self.featurer_list = featurer_list
-        self.theta = {}
+        self.theta = None
+        self.stemmer = stemmer
 
-    def gradientDescent(self, max_iter, lr, regul_coef):
+        
+    def train(self, queries, max_iter, lr, regul_coef):
+        """
+        :param queries: List of Query object
+        """
         # Init param theta
-        for model in self.featurer_list.list_features.keys():
-            self.theta[model] = np.random.uniform(low=0.0, high=1.0)
+        randQueries = np.random.choice(queries, size=max_iter)
+        for randQry in randQueries:
+            relevantDocs = list(randQry.getRelevants().keys())
+            irrelevantDocs = list(set(self.index.getDocsID()) - set(relevantDocs))
+            # Get random documents 
+            relDoc = random.choice(relevantDocs)
+            not_relDoc = random.choice(irrelevantDocs)
 
-        for iter in range(max_iter):
-            # Randomly choosing a query
-            # TODO check how to use only a subset of queries for training
-            queryChosen = np.random.randint(1, 50, size=50)
+            # Retrieve features for the query
+            qryRepr = self.stemmer.getTextRepresentation(randQry.getText())
+            relFeat = self.featurer_list.getFeatures(relDoc, qryRepr)
+            not_relFeat = self.featurer_list.getFeatures(not_relDoc, qryRepr)
 
-            # Get relevant document d
-            relevant_doc = random.choice.queryChosen.getRelevants().key()
-            # Get not relevant document d'
-            not_relevant_doc = random.choice.index.getDocsID()
+            # Init theta if not already done:
+            if self.theta is None:
+                self.theta = np.zeros_like(relFeat)
+            
+            # Update theta
+            if 1 - self.score(qryRepr, relDoc) + self.score(qryRepr, not_relDoc) > 0:
+                self.theta += lr*(relFeat - not_relFeat)
+                # Scale theta:
+                self.theta *= (1-2*lr*regul_coef)
 
-            # While selected document is relevant select another one
-            while not_relevant_doc in list(queryChosen.getRelevants().key()):
-                not_relevant_doc = random.choice.index.getDocsID()
+    def score(self, query, docId):
+        """ Return f_theta(d, q)
+        """
+        if self.theta is None:
+            raise ValueError("Theta not initialized")
+        else:
+            xdq = self.featurer_list.getFeatures(docId, query)
+            return self.theta.dot(xdq)
+        
+    def getScores(self, query, normalized=False):
+        allDocs = self.index.getDocsID()
+        scores = {}
+        for docId in allDocs:
+            if self.theta is None:
+                raise ValueError("Theta not initialized")
+            xdq = self.featurer_list.getFeatures(docId, query)
+            scores[docId] = self.theta.dot(xdq)
+        return scores
 
-            # Retrieve not weigthed scores for the query
-            self.featurer_list.getFeatures(queryChosen)
-            # Retrieve weighted scores in a dict for each model
-            score = self.getScores(queryChosen)
-            # Param update
-            for theta in self.theta.keys():
-                if 1 - score[theta][relevant_doc] + score[theta][not_relevant_doc] > 0:
-                    # Compute gradient
-                    diff = self.featurers_list.list_features[theta][relevant_doc] - self.featurers_list.list_features[theta][not_relevant_doc]
-                    theta[theta] = theta[theta] + lr * diff
-                # Regularization
-                theta[theta] = (1 - 2 * lr * regul_coef) * theta[theta]
-
-    def getScores(self, query, normalized=True):
-        score = {}
-        # Init an empty dict
-        # and fill it with the dot product of (theta,score) for all models
-        for model in self.featurer_list.list_features.keys():
-            score[model] = self.theta[model] * self.featurers_list.list_features[model]
-
-        if normalized:
-            for model in self.featurer_list.list_features.keys():
-                s = np.sum(list(score[model].values()))
-                for docId, score in score[model].items():
-                    score[model][docId] = score/s
-
-        return score
-
-    def getRanking(self, query):
-        final_score = []
-        scores = self.getScores(query, normalized=True)
-        for docId in scores[self.featurer_list.model_list[0]].key():
-            s = 0
-            for model in self.featurer_list.model_list:
-                s += scores[model][docId]
-            final_score.append((docId,s))
-
-        return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
-
+        

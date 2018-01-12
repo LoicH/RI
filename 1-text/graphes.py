@@ -83,6 +83,7 @@ class HITS(RandomWalker):
         authorities = np.ones(N_nodes)
         hubs = np.ones(N_nodes)
         for i in range(nIter):
+#            print("iter", i)
             authorities /= np.linalg.norm(authorities)
             hubs /= np.linalg.norm(hubs)
             new_auth = np.zeros_like(authorities)
