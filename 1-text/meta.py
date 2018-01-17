@@ -38,15 +38,17 @@ class PageRankFeaturer(Featurer):
     """ Doesn't depend on a query"""
     def __init__(self, index):
         super().__init__(index)
+        print("Init pagerank")
         self.pagerankScores = {}
         pagerank = graphes.PageRank(self.index, 
-                                    seeds=self.index.getDocsId(), 
+                                    seeds=self.index.getDocsID(), 
                                     prevNeighbours=0)
         self.pagerankScores = pagerank.getScores()
         # Already scaled
 #        norm = IRmodel.dictNorm(self.pagerankScores)
 #        for key, value in self.pagerankScores.items():
 #            self.pagerankScores[key] = value/norm
+        print("Done.")
         
         
     def getFeatures(self, docId, query):

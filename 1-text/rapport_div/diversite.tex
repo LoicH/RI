@@ -1,0 +1,92 @@
+%----------------------------------------------------------------------------------------
+% Packages & config %----------------------------------------------------------------------------------------
+
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{multicol}
+\usepackage[margin=2cm]{geometry}
+%----------------------------------------------------------------------------------------
+%	Infos du doc
+%----------------------------------------------------------------------------------------
+
+\title{Recherche d'information : diversité} 
+\date{Janvier 2018} 
+\author{
+   Loïc Herbelot
+   \and
+   Sébastien Pereira
+  } 
+
+\begin{document}
+
+\maketitle 
+
+
+\tableofcontents{}
+
+\abstract{
+Nous nous sommes intéressés au problème de la diversité des résultats renvoyés par un systèmes de recherche d'information. Nous avons implémenté plusieurs algorithmes célèbres que nous avons testés sur un benchmark \textsc{easyCLEF08}.}
+
+\begin{multicols}{2}
+
+\section{Intro}
+[~20 lignes]
+\paragraph{Problématique}
+
+[Présenter problématique]
+
+[Problèmes à étudier/résoudre]
+
+\paragraph{Interêts}
+
+\paragraph{Difficultés}
+
+\paragraph{Méthode de résolution}
+
+\paragraph{Plan}
+[Annoncer plan]
+
+\section{État de l'art}
+[Résumer principaux algos vus en cours, leurs avantages et inconvénients]
+\paragraph{Post-retrieval clustering}
+Intuitivement chaque cluster représente un sous-thème d'une requête.
+
+k-means ?
+
+Clustering hiérarchique ?
+
+
+\paragraph{Un algorithme glouton}
+Algorithme simple à comprendre
+
+Choix de la fonction $value$ ?
+
+\paragraph{MMR}
+(-> Tester maxmin)
+
+Fonctions de similarités $Sim1, Sim2$ ?
+
+
+\section{Proposition}
+[Décrire algos qu'on veut programmer, expliquer choix]
+
+
+\section{Expérimentations}
+\paragraph{Présentation des données easyCLEF08}
+
+\paragraph{Présentation des mesures d'évaluation}
+
+\paragraph{Résultats}
+[Ne pas oublier d'étudier les paramètres]
+
+\section{Conclusion}
+[Perspectives et ouvertures]
+
+\end{multicols}
+\end{document}
