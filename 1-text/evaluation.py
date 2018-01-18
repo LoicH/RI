@@ -29,16 +29,11 @@ class EvalMeasure:
         self.irlist = irlist
 
     def getRelevantResults(self):
-        """ Return the <100 relevant results for the query in the
+        """ Return sorted list of relevant results for the query in the
         IRList object"""
-        # The relevant results of the query are the ones that have
-        # a score higher than mean:
-        #mean = np.mean([score for (docId, score) in self.irlist.getScores()])
         sortRes = sorted(self.irlist.getScores(), key=lambda tupl:tupl[1], reverse=True)
-        relevantResults = [docId for (docId, score) in sortRes
-                          #if score > mean
-                        ]
-        return relevantResults[:]
+        relevantResults = [docId for (docId, score) in sortRes]
+        return relevantResults
 
     def eval(self):
         raise NotImplementedError("Abstract method")
@@ -148,16 +143,15 @@ class PrecisionNDocuments(EvalMeasure):
         # Results we found for the query:
         results = super().getRelevantResults()
         precision = 0
-        if len(trueRels) < n:
-            for result in results[0:len(trueRels)]:
-                if result in trueRels:
-                    precision += 1
-            return precision/len(trueRels)
-        else:
-            for result in results[0:n]:
-                if result in trueRels[0:n]:
-                    precision += 1
-            return precision/n
+        N = min(n, len(trueRels))
+        for result in results[:N]:
+            if verbose:
+                print("Result: ", result)
+            if int(result) in trueRels:
+                precision += 1
+                if verbose:
+                    print("Relevant, found docs =", precision)
+        return precision/N
         
 # TODO add subthemes in the returned elements of 'getRelevantResults' to be able to compute the Cluster Recall
 class ClusterRecallNDocuments(EvalMeasure):
@@ -169,13 +163,29 @@ class ClusterRecallNDocuments(EvalMeasure):
                 :return: The cluster recall at the n'th rank"""
         # Truely relevant results for the query:
         trueRels = self.irlist.getQuery().getRelevants()
-        # Results we found for the query:
+        # trueRels is dict {docId(int) : {'subtheme': int, 'score': float},}}
+        # Results we found for the query (sorted list of docs ID)
         results = super().getRelevantResults()
         # Unique subthemes in the real relevant results
         subtheme_set = set()
         for elt in list(trueRels.values()):
             subtheme_set.add(elt["subtheme"])
         real_nb_cluster = len(subtheme_set)
+        if verbose:
+            print("There are %d clusters for this query" % real_nb_cluster)
+        
+        N = min(n, len(trueRels))
+        found_clusters = set()
+        for result in results[:N]:
+            # result is a string: doc ID
+            if int(result) in trueRels.keys():
+                cluster = trueRels[int(result)]['subtheme']
+                if verbose:
+                    print("Result: %s, cluster: %d" % (result, cluster))
+                found_clusters.add(cluster)
+        return len(found_clusters)/real_nb_cluster
+
+        
         return None
         
 class EvalIRModel():

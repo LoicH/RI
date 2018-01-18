@@ -120,6 +120,19 @@ class Vectoriel(IRmodel):
         return scores
 
 
+class PRClustering(IRmodel):
+    def __init__(self, index, base_model):
+        super().__init__(index)
+        self.base_model = base_model
+            
+    def getRanking(self, query):
+        # Get ranking from base model, sorted list of docs ID
+        # get vect repr of docs ID
+        # compute a clustering of these docs/vectors
+        # return a ranking given a cluster/doc orderings
+        pass
+        
+
 
 class UnigramLanguage(IRmodel):
     def __init__(self, index, regularization=0.9):
