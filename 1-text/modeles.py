@@ -7,6 +7,7 @@
 import numpy as np
 import operator
 import graphes
+import itertools
 
 class Weighter():
     def __init__(self, index):
@@ -21,6 +22,40 @@ class Weighter():
 
     def getWeightsForQuery(self, query):
         raise NotImplementedError("Abstract method.")
+        
+    def constructMatrix(self, docsList):
+        docsWeights = {} # {docId: {stem representation}}
+        docMap = {}# {docID: doc position in matrix (line)}
+        stemMap = {} # {stem: position in matrix (column)}
+        # We are going to store all the stems inside the docs
+        Nwords = 0
+        for docId in docsList:
+            docWeight = self.getDocWeightsForDoc(docId)
+            docsWeights[docId] = docWeight
+#            print("docId:", docId)
+#            print("docWeight:", docWeight)
+            # Add the new word to the vocabulary
+#            vocabSet.update(set(docWeight.keys()))
+            for stem in docWeight:
+                if stem not in stemMap:
+                    stemMap[stem] = Nwords
+                    Nwords += 1
+            
+        # Create the matrix
+        Ndocs = len(docsList)
+        X = np.zeros((Ndocs, Nwords))
+        
+        # Populate the matrix
+        allDocId = list(docsWeights.keys())
+        for i, docId in enumerate(allDocId):
+            docRepr = docsWeights[docId]
+            docMap[i] = docId
+            for stem in docRepr:
+                j = stemMap[stem]
+                X[i, j] = docRepr[stem]
+#        print(allDocId, stemMap)
+#        print(X)
+        return X
 
 class BinaryWeighter(Weighter):
     def __init__(self, index):
@@ -76,6 +111,7 @@ class IRmodel():
         
     def getRanking(self, query):
         """ Compute the of documents for the query
+        :param query: dict of term frequencies
         :return: A list of tuples (doc id, score) sorted by score """
         scores = self.getScores(query)
         return sorted(scores.items(), key=operator.itemgetter(1), reverse=True)
@@ -92,6 +128,9 @@ class Vectoriel(IRmodel):
         super().__init__(index)
         self.weighter = weighter
 
+    def getWeighter(self):
+        return self.weighter
+    
     def score(self, query, docId, normalized=True):
         queryWeights = self.weighter.getWeightsForQuery(query)
         docWeights = self.weighter.getDocWeightsForDoc(docId)
@@ -121,19 +160,67 @@ class Vectoriel(IRmodel):
 
 
 class PRClustering(IRmodel):
-    def __init__(self, index, base_model):
+    def __init__(self, index, baseModel, cluster, nDocs=20, 
+                 clustersRank="rank", docRank="rank"):
+        """
+        :param baseModel: a vectoriel model, needs to have a getWeighter() method
+        :param clustersRank: "rank", "querySim", "docsNbrAsc", "docsNbrDesc"
+            The order of cluster retrieval
+        :param docsRank: "rank", "centerSim"
+            The order of documents retrieval inside a cluster
+        """
         super().__init__(index)
-        self.base_model = base_model
+        self.baseModel = baseModel
+        self.cluster = cluster
+        self.nDocs = nDocs
+        self.clustersRank = clustersRank
+        self.docRank = docRank
             
-    def getRanking(self, query):
-        # Get ranking from base model, sorted list of docs ID
-        # get vect repr of docs ID
-        # compute a clustering of these docs/vectors
-        # return a ranking given a cluster/doc orderings
-        pass
+    def docQrySimilarity(self, docId, queryRepr):
+        docRepr = self.baseModel.getWeighter().getDocWeightsForDoc(docId)
+        return IRmodel.dictProduct(docRepr, queryRepr)
+    
+    
+    def getRanking(self, query, Nclusters=None):
+        # Get ranking from base model, sorted list of (docsID, score)
+        baseRanking = self.baseModel.getRanking(query)[:self.nDocs]
+        docsScores = {docId:score for (docId, score) in baseRanking}
+        docsList = [docId for (docId, score) in baseRanking]
         
-
-
+        # Construct a matrix representation for the ranking
+        weighter = self.baseModel.getWeighter()
+        X = weighter.constructMatrix(docsList)
+        
+        # compute a clustering of these docs/vectors
+        clustering = self.cluster.cluster(X, Nclusters=Nclusters)
+        # put the original docs ID in the clustering instead of docs position
+        for i, cluster in enumerate(clustering):
+            clustering[i] = [docsList[d] for d in cluster]
+        
+        print("\nClustering:", clustering)
+        
+        # return a ranking given a cluster/doc orderings
+        clusterRankings = {"rank": lambda l:max([docsScores[d] for d in l]),
+                "querySim": lambda l:max([self.docQrySimilarity(d, query) 
+                            for d in l]),
+                "docsNbrAsc": lambda l:len(l)}
+        docRankings = {"rank": lambda d:docsScores[d],}
+        
+        clusterOrder = sorted(clustering, key=clusterRankings[self.clustersRank], reverse=True)
+        print("\nCluster order:", clusterOrder)
+        
+        for i, cluster in enumerate(clusterOrder):
+            clusterOrder[i] = sorted(cluster, key=docRankings[self.docRank], reverse=True)
+        
+        print("\nCluster ranking:", clusterOrder)
+        
+        zipped = itertools.zip_longest(*clusterOrder)
+        ranking = []
+        for tupl in zipped:
+            ranking += [elt for elt in tupl if elt is not None]
+        print("\nRanking:", ranking)
+        return ranking
+        
 class UnigramLanguage(IRmodel):
     def __init__(self, index, regularization=0.9):
         """ Create a new unigram model.

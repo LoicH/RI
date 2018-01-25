@@ -7,32 +7,44 @@ class Clustering():
     def __init__(self):
         pass
     
-    def cluster(self, query, ranking):
+    def cluster(self, X):
         """ Compute the clustering of a ranking
-        :param query:
-        :param ranking:
+        :param X: The matrix of all docs
         :return: a clustering, index of the cluster each sample belongs to.
 
         """
         raise NotImplementedError("Abstract method")
         
 class KMeansClustering(Clustering):
-    def cluster(self, X, criterion="bic"):
-        
-        # Retrieve ranking for this query
-        max_clusters = 20
-        clusters_range = range(2, max_clusters)
-        # Test different numbers of clusters
-        best_cluster_labels = None
-        best_score = -1
-        for n_clusters in clusters_range:
-            clusterer = KMeans(n_clusters=n_clusters)
-            cluster_labels = clusterer.fit_predict(X)
-            sil_score = silhouette_score(X, cluster_labels)
-            if sil_score > best_score:
-                best_cluster_labels = cluster_labels
-                best_score = sil_score
-            print("For n_clusters =", n_clusters,
-                  "The average silhouette_score is :", sil_score)
-        return best_cluster_labels
+    def cluster(self, X, Nclusters=None, criterion="bic"):
+        if Nclusters is None:
+            # Find the best cluster
+            maxClusters = 20
+            clustersRange = range(2, maxClusters)
+            bestClusterLabels = None
+            bestScore = -1
+            bestClusterNb = -1
+            for Nclusters in clustersRange:
+                clusterer = KMeans(n_clusters=Nclusters)
+                clusterLabels = clusterer.fit_predict(X)
+                silScore = silhouette_score(X, clusterLabels)
+                if silScore > bestScore:
+                    bestClusterLabels = clusterLabels
+                    bestScore = silScore
+                    bestClusterNb = Nclusters
+                print("For n_clusters =", Nclusters,
+                      "The average silhouette_score is :", silScore)
+        else:
+            clusterer = KMeans(n_clusters=Nclusters)
+            bestClusterNb = Nclusters
+            bestClusterLabels = clusterer.fit_predict(X)
+
+            
+        # Change the clustering format:
+        clustering = []
+        docsId = range(X.shape[0])
+        for i in range(bestClusterNb):
+            clustering.append([docId for docId in docsId if bestClusterLabels[docId] == i])
+            
+        return clustering
         

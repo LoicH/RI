@@ -4,16 +4,16 @@
 import numpy as np
 import TextRepresenter
 import itertools
-import time
 
 class IRList():
     """ Contains a query and the scores found for this query """
-    def __init__(self, query, scores):
+    def __init__(self, query, scores, ranking=None):
         """ Create new IRList
         :param query: The Query object
         :param scores: a list of tuples [(docId, score)]"""
         self.query = query
         self.scores = scores # List [(docId, score)]
+        self.ranking = ranking
 
     def getQuery(self):
         """ Return the Query object"""
@@ -21,19 +21,22 @@ class IRList():
 
     def getScores(self):
         return self.scores
+    
+    def getRanking(self):
+        """ Return sorted list of relevant results for the query in the
+        IRList object"""
+        if self.ranking is None:
+            sortRes = sorted(self.getScores(), key=lambda tupl:tupl[1], reverse=True)
+            self.ranking = [docId for (docId, score) in sortRes]
+        return self.ranking
+
+
 
 
 class EvalMeasure:
     """ The abstract class for measure methods """
     def __init__(self, irlist):
         self.irlist = irlist
-
-    def getRelevantResults(self):
-        """ Return sorted list of relevant results for the query in the
-        IRList object"""
-        sortRes = sorted(self.irlist.getScores(), key=lambda tupl:tupl[1], reverse=True)
-        relevantResults = [docId for (docId, score) in sortRes]
-        return relevantResults
 
     def eval(self):
         raise NotImplementedError("Abstract method")
@@ -54,7 +57,7 @@ class PrecisionRecallMeasure(EvalMeasure):
         # Truely relevant results for the query:
         trueRels = list(self.irlist.getQuery().getRelevants().keys())
         # Results we found for the query:
-        results = super().getRelevantResults()
+        results = self.irlist.getRanking()
         trueRelsLen = len(trueRels)        
         
         if verbose:
@@ -107,7 +110,7 @@ class AveragePrecision(EvalMeasure):
         # Truely relevant results for the query:
         trueRels = list(self.irlist.getQuery().getRelevants().keys())
         # Results we found for the query:
-        results = super().getRelevantResults()
+        results = self.irlist.getRanking()
 
         if verbose:
             print("This query has %d relevant results" 
@@ -141,7 +144,7 @@ class PrecisionNDocuments(EvalMeasure):
         # Truely relevant results for the query:
         trueRels = list(self.irlist.getQuery().getRelevants().keys())
         # Results we found for the query:
-        results = super().getRelevantResults()
+        results = self.irlist.getRanking()
         precision = 0
         N = min(n, len(trueRels))
         for result in results[:N]:
@@ -153,7 +156,6 @@ class PrecisionNDocuments(EvalMeasure):
                     print("Relevant, found docs =", precision)
         return precision/N
         
-# TODO add subthemes in the returned elements of 'getRelevantResults' to be able to compute the Cluster Recall
 class ClusterRecallNDocuments(EvalMeasure):
     def __init__(self, irlist):
         super().__init__(irlist)
@@ -165,7 +167,7 @@ class ClusterRecallNDocuments(EvalMeasure):
         trueRels = self.irlist.getQuery().getRelevants()
         # trueRels is dict {docId(int) : {'subtheme': int, 'score': float},}}
         # Results we found for the query (sorted list of docs ID)
-        results = super().getRelevantResults()
+        results = self.irlist.getRanking()
         # Unique subthemes in the real relevant results
         subtheme_set = set()
         for elt in list(trueRels.values()):
