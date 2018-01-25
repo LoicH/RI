@@ -9,8 +9,8 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{amsthm}
-\usepackage{multicol}
-\usepackage[margin=2cm]{geometry}
+%\usepackage{multicol}
+%\usepackage[margin=2cm]{geometry}
 %----------------------------------------------------------------------------------------
 %	Infos du doc
 %----------------------------------------------------------------------------------------
@@ -31,12 +31,13 @@
 \tableofcontents{}
 
 \abstract{
-Nous nous sommes intéressés au problème de la diversité des résultats renvoyés par un systèmes de recherche d'information. Nous avons implémenté plusieurs algorithmes célèbres que nous avons testés sur un benchmark \textsc{easyCLEF08}.}
+Nous nous sommes intéressés au problème de la diversité des résultats renvoyés par un système de recherche d'informations. Nous avons implémenté plusieurs algorithmes célèbres que nous avons testés sur un benchmark \textsc{easyCLEF08}.}
 
-\begin{multicols}{2}
+
 
 \section{Intro}
-[~20 lignes]
+On évalue d'ordinaire les performances des systèmes de recherche d'information avec des mesures telles que la pertinence. L'inconvénient majeur de ces méthodes d'évaluation est qu'elles ne tiennent compte de l'aspect redondant des documents renvoyés. Si par exemple un utilisateur veut voir des photos du Machu Picchu, il est sans doute intéressant de lui renvoyer des photos avec différentes prises de vue, différentes conditions météorologiques etc. \\
+
 \paragraph{Problématique}
 
 [Présenter problématique]
@@ -46,11 +47,13 @@ Nous nous sommes intéressés au problème de la diversité des résultats renvo
 \paragraph{Interêts}
 
 \paragraph{Difficultés}
-
+La difficulté du problème de diversité vient du fait que le but qu'on cherche à atteindre s'avère souvent contradictoire avec l'objectif rechercher en terme de pertinence des documents. En effet si nous renvoyons un maximum de documents différents à l'utilisateur on est presque sûr de trouver un nombre de sous-thème plus grand mais au détriment de la mesure de pertinence.
 \paragraph{Méthode de résolution}
+Afin de palier le \textbf{problème de redondance} inhérent aux méthodes d'évaluation de pertinence nous introduisons un nouveau concept, celui de la diversité. On peut voir le problème de la diversité sous deux angles opposés. \\
+Premièrement on peut définir une mesure de \textbf{redondance} dans les documents retournés, auquel cas notre algorithme de diversité aurait pour but de minimiser cette redondance. Enfin on peut envisager le problème sous l'angle de la \textbf{nouveauté} dans ce cas le but de l'algorithme est de maximiser la nouveauté à chaque nouveau document renvoyé. Pour finir nous introduisons une notion importante que nous utiliserons pour résoudre notre problème de diversité. il s'agit des sous-thèmes des documents
 
 \paragraph{Plan}
-[Annoncer plan]
+Nous allons dans un premier temps faire un état de l'art des méthodes utilisées pour répondre à la problématique. Ensuite nous ferons des hypothèses afin de proposer une démarche expérimentale visant à mettre en oeuvre des techniques utilisées dans la littérature. Nous évaluerons nos algorithme sur un benchmark \textsc{easyCLEF08} que nous comparerons à une baseline. Pour finir nous conclurons quant à nos expériences.
 
 \section{État de l'art}
 20 lignes pour présenter diff méthodes de l'état de l'art
@@ -88,5 +91,5 @@ Parler de la baseline
 
 Biblio
 
-\end{multicols}
+
 \end{document}
