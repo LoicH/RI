@@ -16,10 +16,10 @@ class Clustering():
         raise NotImplementedError("Abstract method")
         
 class KMeansClustering(Clustering):
-    def cluster(self, X, Nclusters=None, criterion="bic"):
+    def cluster(self, X, Nclusters=None, maxClusters=20, criterion="bic", verbose=False):
         if Nclusters is None:
             # Find the best cluster
-            maxClusters = 20
+            maxClusters = maxClusters
             clustersRange = range(2, maxClusters)
             bestClusterLabels = None
             bestScore = -1
@@ -32,7 +32,8 @@ class KMeansClustering(Clustering):
                     bestClusterLabels = clusterLabels
                     bestScore = silScore
                     bestClusterNb = Nclusters
-                print("For n_clusters =", Nclusters,
+                if verbose:
+                    print("For n_clusters =", Nclusters,
                       "The average silhouette_score is :", silScore)
         else:
             clusterer = KMeans(n_clusters=Nclusters)
@@ -41,6 +42,8 @@ class KMeansClustering(Clustering):
 
             
         # Change the clustering format:
+        if verbose:
+            print("N_clusters = ", bestClusterNb)
         clustering = []
         docsId = range(X.shape[0])
         for i in range(bestClusterNb):

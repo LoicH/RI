@@ -160,7 +160,7 @@ class Vectoriel(IRmodel):
 
 
 class PRClustering(IRmodel):
-    def __init__(self, index, baseModel, cluster, nDocs=20, 
+    def __init__(self, index, baseModel, cluster, nDocs=100, 
                  clustersRank="rank", docRank="rank"):
         """
         :param baseModel: a vectoriel model, needs to have a getWeighter() method
@@ -180,8 +180,10 @@ class PRClustering(IRmodel):
         docRepr = self.baseModel.getWeighter().getDocWeightsForDoc(docId)
         return IRmodel.dictProduct(docRepr, queryRepr)
     
+    def setNDocs(self, nDocs):
+        self.nDocs = nDocs
     
-    def getRanking(self, query, Nclusters=None):
+    def getRanking(self, query, Nclusters=None, maxClusters=20, verbose=False):
         # Get ranking from base model, sorted list of (docsID, score)
         baseRanking = self.baseModel.getRanking(query)[:self.nDocs]
         docsScores = {docId:score for (docId, score) in baseRanking}
@@ -192,12 +194,13 @@ class PRClustering(IRmodel):
         X = weighter.constructMatrix(docsList)
         
         # compute a clustering of these docs/vectors
-        clustering = self.cluster.cluster(X, Nclusters=Nclusters)
+        clustering = self.cluster.cluster(X, Nclusters=Nclusters, maxClusters=maxClusters)
         # put the original docs ID in the clustering instead of docs position
         for i, cluster in enumerate(clustering):
             clustering[i] = [docsList[d] for d in cluster]
         
-        print("\nClustering:", clustering)
+        if verbose:
+            print("\nClustering:", clustering)
         
         # return a ranking given a cluster/doc orderings
         clusterRankings = {"rank": lambda l:max([docsScores[d] for d in l]),
@@ -207,18 +210,21 @@ class PRClustering(IRmodel):
         docRankings = {"rank": lambda d:docsScores[d],}
         
         clusterOrder = sorted(clustering, key=clusterRankings[self.clustersRank], reverse=True)
-        print("\nCluster order:", clusterOrder)
+        if verbose:
+            print("\nCluster order:", clusterOrder)
         
         for i, cluster in enumerate(clusterOrder):
             clusterOrder[i] = sorted(cluster, key=docRankings[self.docRank], reverse=True)
         
-        print("\nCluster ranking:", clusterOrder)
+        if verbose:
+            print("\nCluster ranking:", clusterOrder)
         
         zipped = itertools.zip_longest(*clusterOrder)
         ranking = []
         for tupl in zipped:
             ranking += [elt for elt in tupl if elt is not None]
-        print("\nRanking:", ranking)
+        if verbose:
+            print("\nRanking:", ranking)
         return ranking
         
 class UnigramLanguage(IRmodel):
