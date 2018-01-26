@@ -9,6 +9,9 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
 %\usepackage{multicol}
 %\usepackage[margin=2cm]{geometry}
 %----------------------------------------------------------------------------------------
@@ -36,18 +39,15 @@ Nous nous sommes intéressés au problème de la diversité des résultats renvo
 
 
 \section{Intro}
-On évalue d'ordinaire les performances des systèmes de recherche d'information avec des mesures telles que la pertinence. L'inconvénient majeur de ces méthodes d'évaluation est qu'elles ne tiennent compte de l'aspect redondant des documents renvoyés. Si par exemple un utilisateur veut voir des photos du Machu Picchu, il est sans doute intéressant de lui renvoyer des photos avec différentes prises de vue, différentes conditions météorologiques etc. \\
 
 \paragraph{Problématique}
 
-[Présenter problématique]
-
-[Problèmes à étudier/résoudre]
+On évalue d'ordinaire les performances des systèmes de recherche d'information avec des mesures telles que la pertinence. L'inconvénient majeur de ces méthodes d'évaluation est qu'elles considèrent la pertience des documents renvoyés de manière indépendante et donc ne tiennent compte de l'aspect redondant des documents renvoyés.
 
 \paragraph{Interêts}
-
+Si par exemple un utilisateur veut voir des photos du Machu Picchu, il est sans doute intéressant de lui renvoyer des photos avec différentes prises de vue, différentes conditions météorologiques etc. Ce raisonnement se généralise à tout type de requête dans les système de recherche d'information d'où l'intérêt de résoudre ce problème.
 \paragraph{Difficultés}
-La difficulté du problème de diversité vient du fait que le but qu'on cherche à atteindre s'avère souvent contradictoire avec l'objectif rechercher en terme de pertinence des documents. En effet si nous renvoyons un maximum de documents différents à l'utilisateur on est presque sûr de trouver un nombre de sous-thème plus grand mais au détriment de la mesure de pertinence.
+Cependant le but recherché peut s'avèrer contradictoire avec le but recherché en terme de pertinence. En effet si nous renvoyons un maximum de documents différents à l'utilisateur sans prendre en compte la pertinence on maximise les possibilités de trouver un nombre de sous-thème plus grand mais au détriment de la mesure de pertinence.
 \paragraph{Méthode de résolution}
 Afin de palier le \textbf{problème de redondance} inhérent aux méthodes d'évaluation de pertinence nous introduisons un nouveau concept, celui de la diversité. On peut voir le problème de la diversité sous deux angles opposés. \\
 Premièrement on peut définir une mesure de \textbf{redondance} dans les documents retournés, auquel cas notre algorithme de diversité aurait pour but de minimiser cette redondance. Enfin on peut envisager le problème sous l'angle de la \textbf{nouveauté} dans ce cas le but de l'algorithme est de maximiser la nouveauté à chaque nouveau document renvoyé. Pour finir nous introduisons une notion importante que nous utiliserons pour résoudre notre problème de diversité. il s'agit des sous-thèmes des documents
@@ -56,27 +56,80 @@ Premièrement on peut définir une mesure de \textbf{redondance} dans les docume
 Nous allons dans un premier temps faire un état de l'art des méthodes utilisées pour répondre à la problématique. Ensuite nous ferons des hypothèses afin de proposer une démarche expérimentale visant à mettre en oeuvre des techniques utilisées dans la littérature. Nous évaluerons nos algorithme sur un benchmark \textsc{easyCLEF08} que nous comparerons à une baseline. Pour finir nous conclurons quant à nos expériences.
 
 \section{État de l'art}
-20 lignes pour présenter diff méthodes de l'état de l'art
-Rester général
-10 lignes cluster
-10 lignes glouton
-[Résumer principaux algos vus en cours, leurs avantages et inconvénients]
-\paragraph{Post-retrieval clustering}
-Intuitivement chaque cluster représente un sous-thème d'une requête.
+Dans la littérature il existe principalement deux manières de résoudre le problème de la diversité.\\
 
-k-means ?
-
-Clustering hiérarchique ?
+\paragraph{Algorithme à base de partitionnement}
+Les premières méthodes se base sur des algorithmes de \textit{clustering}. Elles optimisent à la fois la pertinence et la diversité car elles font deux hypothèses fondamentales. La première hypothèse est que si un document est pertinent alors les documents se trouvant dans le même cluster on également de plus grande chance d'être pertinent que des documents qui ne s'y trouve pas. La deuxième hypothèse tient au fait que les clusters de documents sont susceptibles de capter les sous-thèmes des requêtes. En pratique on effectue des \textit{clustering post retrieval} pour des raisons évidentes de coup de calcul. Les avantages de ces méthodes sont qu'elle optimise en même temps la pertinence et la diversité et les inconvénients sont la difficulté à trouver les paramètres pour avoir un partitionnement optimal.
 
 
-\paragraph{Un algorithme glouton}
-Algorithme simple à comprendre
 
+\paragraph{Algorithme gourmands}
+Les deuxièmes méthodes implémentent quant à elles des algorithmes gourmands. En générale les algorithmes gourmands optimisent une combinaison linéaire de 2 scores de similarité. Le premier contrôle la pertinence en calculant la similarité du documents à la requête. Le second controle contrôle la redondance du document avec les docuemnts déjà renvoyés. On peut envisager ces algorithmes sous plusieurs angles similarité/minimisation de la redondance ou dissimilarité/maximisation de la nouveauté. Les avantages de ces méthodes sont leur simplicité et leur efficacité. Néanmoins leur inconvénient est qu'elle ne garantissent pas de trouver une solution optimale globale au problème.
 
 \section{Proposition}
-[Décrire algos qu'on veut programmer, expliquer choix]
-Hypothèse sur un ou deux algos de clustering, montrer que c'est meilleur que l'état de l'art/ la baseline
+[Décrire algos qu'on veut programmer, expliquer choix] 
+Hypothèse sur un ou deux algos de clustering, montrer que c'est meilleur que l'état de l'art/ la baseline \\
+Au cours de ces travaux nous allons implémenter deux différentes méthodes afin de résoudre le problème de diversité. \\
+\textbf{Algorithmes de diversité basés sur le partitionnement} Dans un premier temps nous allons développer une solution basée sur des méthodes de partitionnement. Notre algorithme réalisera un clustering des 100 premiers documents renvoyés par notre modèle qui nous servira de baseline (ici un modèle vectoriel de pondération tf-idf (\textit{term frequency invert document frequency}). Les paramètres du clustering étant primordiaux car les résultats en dépendent beaucoup, on propose donc d'évaluer la qualité de notre partitionnement grâce au coefficient silouhette. Nous allons ensuite essayer de confirmer ou d'infirmer ces choix lors de notre démarche expérimentale pour voir si notre heuristique est performante. 
 
+Une fois le clustering obtenu et en supposant que chaque cluster correspond à un sous-thème on choisira de renvoyer les documents par ordre de pertinence en alternant sur chacun des clusters. 
+
+Pour être plus précis quant aux modèles nous allons dans un premier temps utiliser un algorithme de partitionnement de type centroïde et plus particulièrement le k-medoïd. L'algorithme du k-medoïd est une variante du k-means dans la mesure ou l'initialisation des barycentres se fait non pas de manière aléatoire dans l'espace mais aléatoire en les coordonnées des exemples d'entrainement. Par la suite le principe et l'implémentation ne diffèrent pas du k-means. On minimise la dispersion intra-clusters de manière itérative en considérant la norme euclidienne au carré. Plutôt que de trouver la solution exacte (minimum global) au problème NP-difficile ($\mathcal{O}(n^{dk+1})$ où $n$ représente le nombre d'exemple, $d$ la dimension de l'espace et $k$ le nombre de partition) on a recours à des heuristiques (approximations polynomiales) qui garantissent la décroissance de la dispersion à chaque itération sans pour autant garantir d'atteindre le minimum global. 
+
+L'intéret de cette méthode est qu'elle permet d'avoir des temps de calcul raisonnables et ses inconvénients sont le fait qu'à cause de l'approximation polynomiale la solution dépend beaucoup de l'initialisation du problème et le fait que l'on face implicitement une hypothèse de convexité des sous-thème. 
+
+Dans un second temps, nous remettrons en question l'hypothèse concernant la diversité utilisée avec le k-medoïd qui postule que les clusters (donc les mots proches dans l'espace) représentent des sous-thèmes des requêtes. En effet c'est une hypothèse assez forte que l'on peut discuter. En faisant cette hypothèse, on suppose qu'un thème est représenter par des vecteurs proches dans l'espace des mots. Ce qui revient à faire implicitement une hypothèse sur la convexité des clusters. Or la représentation des mots dans l'espace est obtenu par un simple modèle de pondération des terme et non pasr une méthode de \textit{word embedding} qui garantie la proximité dans l'espace des mots des termes proches sémantiquement qui auraient plus de chance d'aboutir à des sous-thèmes qui représentent des espaces convexes et donc qui pourrait être traité avec un k-medoïd. Pour pallier ce problème nous allons donc utiliser un algorithme de clustering spectrale qui tire profit des méthodes spectrale pour s'affranchir de l'hypothèse de convexité.
+
+De plus l'algorithme k-medoïd minimise la dispersion au sens de la distance euclidienne au carré, ce qui peut être valable dans les documents avec peu de terme mais n'est plus valable lorsque les documents sont représentés par des vecteurs de grandes dimensions (fléau de la dimension).
+
+\textbf{Algorithmes de diversité basés} Nous allons ensuite envisager une résolution du problème de diversité en utilisant des algorithme gourmands. \\
+
+Nous nous intéresserons d'abord à un algorithme $MaxMin$ dont le but est de maximiser la nouveauté des résultats renvoyés. En pratique on incrémente une liste de documents à renvoyer, puis à chaque itération on va chercher à renvoyer le document qui maximise la nouveauté par rapport aux documents déjà présents dans la liste.
+
+Plus formellement on a l'algorithme suivant:
+
+\begin{algorithm}
+\caption{$MaxMin$}
+\begin{algorithmic}
+\REQUIRE $U$ un ensemble de documents non-ordonnés
+\REQUIRE $K$ le nombre de documents à ordonner
+\FOR {$i=1,2,\dots,K$} 
+\STATE $d_i \leftarrow \arg\max_{d_u \in U} value(d_u;d_1,d_2,\dots,d_{i-1})$ 
+\STATE $U \leftarrow U \backslash \left\{d_i\right\}$
+\ENDFOR
+\RETURN $\left\{d_1, d_2,\dots, d_K\right\}$
+\end{algorithmic}
+\end{algorithm}
+
+Où dans le cas particulier du $MaxMin$ on a : 
+\begin{equation}
+value_{MaxMin}(d_u;d_1,d_2,\dots,d_{i-1}) = \min_{j<i} \delta(d_u,d_j)
+\end{equation}
+Avec $\delta(.,.)$ une fonction de dissimilarité symétrique qui vérifie $\forall x \in U, \delta(x,x) =0$ \\
+Les avantages de cet algorithme sont sa simplicité, sa capacité à diversifier sans besoin de requête. Ses inconvénients viennent du fait qu'il n'existe pas de paramètre qui contrôle la pertinence des résultats renvoyés. 
+
+Voilà pourquoi dans un deuxième temps on s'intéressera à un algorithme gourmand plus complet au sens ou il essaye d'optimiser à la fois la pertinence et la diversité en prenant comme critère une combinaison linéaire d'un premier score qui contrôle la pertinence et d'un second score qui contrôle la diversité. On utilisera pour ça un algorithme classique \textit{Maximal Marginal Relevance} pour lequel on définit la mesure d'évaluation suivante : \\
+$\forall \alpha \in [0,1]$
+\begin{equation}
+value_{MMR}(d_u;q,d_1,d_2,\dots,d_{i-1}) = \underbrace{\alpha Sim_{\phi}(d_u,q)}_{\text{contrôle de la pertinence}} + \underbrace{(\alpha - 1)Sim_{\Phi}(d_u;d_1,d_2,\dots,d_{i-1})}_{\text{contrôle de la divserité}}
+\end{equation}
+Où :\\
+$Sim_{\phi}$ et $Sim_{\Phi}$ sont des mesures de similarités normalisées classiques que l'on peut définir de plusieurs manière comme une similarité cosinus par exemple, ou encore de la façon suivante, $\forall (x,y) \in U, Sim_{\phi}(x,y) = 1 - \delta(x,y) $, où $\delta(.,.)$ représente une mesure de dissimilarité telle que $\forall (x,y) \in U, \delta(x,y) \in [0,1]$
+L'avantage de cet algorithme est qu'il est moins naïf  que l'algorithme $MaxMin$ au sens où il parvient à optimiser conjointement la pertinence et la diversité , de manière à obtenir le meilleur compromis. L'inconvénient 
+\begin{algorithm}
+\caption{$Maximal Marginal Relevance$}
+\begin{algorithmic}
+\REQUIRE $U$ un ensemble de documents non-ordonnés
+\REQUIRE $K$ le nombre de documents à ordonner
+\REQUIRE $q$ une requête
+\FOR {$i=1,2,\dots,K$} 
+\STATE $d_i \leftarrow \arg\max_{d_u \in U} value(d_u;q,d_1,d_2,\dots,d_{i-1})$ 
+\STATE $U \leftarrow U \backslash \left\{d_i\right\}$
+\ENDFOR
+\RETURN $\left\{d_1, d_2,\dots, d_K\right\}$
+\end{algorithmic}
+\end{algorithm}
+\newpage
 \section{Expérimentations}
 \paragraph{Présentation des données easyCLEF08}
 
