@@ -180,12 +180,19 @@ class PRClustering(IRmodel):
         docRepr = self.baseModel.getWeighter().getDocWeightsForDoc(docId)
         return IRmodel.dictProduct(docRepr, queryRepr)
     
+    def setCluster(self, cluster):
+        self.cluster = cluster
     def setNDocs(self, nDocs):
         self.nDocs = nDocs
+    def setClustersRank(self, clustersRank):
+        self.clustersRank = clustersRank
+    def setDocRank(self, docRank):
+        self.docRank = docRank
     
     def getRanking(self, query, Nclusters=None, maxClusters=20, verbose=False):
         # Get ranking from base model, sorted list of (docsID, score)
         baseRanking = self.baseModel.getRanking(query)[:self.nDocs]
+        
         docsScores = {docId:score for (docId, score) in baseRanking}
         docsList = [docId for (docId, score) in baseRanking]
         
@@ -200,21 +207,24 @@ class PRClustering(IRmodel):
             clustering[i] = [docsList[d] for d in cluster]
         
         if verbose:
-            print("\nClustering:", clustering)
+            print("\nBase ranking:", docsList)
+            print("\nClustering (%d clusters):" % i)
+            print(clustering)
         
         # return a ranking given a cluster/doc orderings
-        clusterRankings = {"rank": lambda l:max([docsScores[d] for d in l]),
-                "querySim": lambda l:max([self.docQrySimilarity(d, query) 
+        clusterRankings = {"rank": lambda l:-max([docsScores[d] for d in l]),
+                "querySim": lambda l:-max([self.docQrySimilarity(d, query) 
                             for d in l]),
-                "docsNbrAsc": lambda l:len(l)}
-        docRankings = {"rank": lambda d:docsScores[d],}
+                "docsNbrAsc": lambda l:len(l),
+                "docsNbrDesc": lambda l:-len(l)}
+        docRankings = {"rank": lambda d:-docsScores[d]}
         
-        clusterOrder = sorted(clustering, key=clusterRankings[self.clustersRank], reverse=True)
+        clusterOrder = sorted(clustering, key=clusterRankings[self.clustersRank])
         if verbose:
             print("\nCluster order:", clusterOrder)
         
         for i, cluster in enumerate(clusterOrder):
-            clusterOrder[i] = sorted(cluster, key=docRankings[self.docRank], reverse=True)
+            clusterOrder[i] = sorted(cluster, key=docRankings[self.docRank])
         
         if verbose:
             print("\nCluster ranking:", clusterOrder)

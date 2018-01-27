@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from sklearn.metrics import silhouette_score
-from sklearn.cluster import KMeans
-
+from sklearn.cluster import KMeans, MeanShift
+import numpy as np
 
 class Clustering():
     def __init__(self):
@@ -51,3 +51,17 @@ class KMeansClustering(Clustering):
             
         return clustering
         
+    
+class MeanShiftClustering(Clustering):
+    def cluster(self, X, Nclusters=None, maxClusters=None, verbose=False):
+        meanshift = MeanShift()
+        meanshift.fit(X)
+        labels = meanshift.labels_
+        clustering = []
+        labels_unique = np.unique(labels)
+        n_clusters_ = len(labels_unique)
+        docsId = range(X.shape[0])
+        for i in range(n_clusters_):
+            clustering.append([docId for docId in docsId if labels[docId] == i])
+            
+        return clustering
