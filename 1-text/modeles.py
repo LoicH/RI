@@ -238,7 +238,70 @@ class PRClustering(IRmodel):
         if verbose:
             print("\nRanking:", ranking)
         return ranking
-        
+
+class GreedyAlgorithm(IRmodel):
+    def __init__(self, index, baseModel, alpha, nDocs=200):
+        """
+        :param baseModel: a vectoriel model, needs to have a getWeighter() method
+        :param alpha: a float coefficient in [0,1] that controles the linear combination
+
+        """
+        super().__init__(index)
+        self.baseModel = baseModel
+        self.nDocs = nDocs
+        self.alpha = alpha
+
+    def setNDocs(self, nDocs):
+        self.nDocs = nDocs
+
+    def score(self, doc1, doc2, normalized=True):
+        doc1Weights = self.baseModel.weighter.getDocWeightsForDoc(doc1)
+        doc2Weights = self.baseModel.weighter.getDocWeightsForDoc(doc2)
+        norm = 1
+        if normalized:
+            norm = IRmodel.dictNorm(doc1Weights) * IRmodel.dictNorm(doc2Weights)
+        product = IRmodel.dictProduct(doc1Weights, doc2Weights)
+        return product / norm
+
+    def getRanking(self, query, verbose=False):
+        # Get ranking from base model, sorted list of (docsID, score)
+        baseRanking = self.baseModel.getRanking(query)[:self.nDocs]
+
+        # dictionnary of Similiarity 1 (sim between query and documents)
+        docsScores = {docId: score for (docId, score) in baseRanking}
+        # U set of unordered documents
+        docsList = [docId for (docId, score) in baseRanking]
+        # Ordered documents
+        result = []
+        print("Doc score size", len(docsScores))
+
+        for i in range(len(docsList)):
+            max_sim2 = -float("inf")
+            max_value = -float("inf")
+            du_selected = None
+            if i == 0:
+                du = max(docsScores, key=docsScores.get)
+                result.append(du)
+                # Remove document from the scores dictionnary
+                del docsScores[du]
+                # Remove document from the list of documents
+                docsList.remove(du)
+            else:
+                for du in docsScores.keys():
+                    for doc_returned in result:
+                        score = self.score(du, doc_returned)
+                        if score > max_sim2:
+                            max_sim2 = score
+                    value_score = self.alpha * docsScores[du] + (self.alpha - 1) * max_sim2
+                    if value_score > max_value:
+                        du_selected = du
+                # Remove document from the scores dictionnary
+                del docsScores[du_selected]
+                # Remove document from the list of documents
+                docsList.remove(du_selected)
+
+        return result
+
 class UnigramLanguage(IRmodel):
     def __init__(self, index, regularization=0.9):
         """ Create a new unigram model.
