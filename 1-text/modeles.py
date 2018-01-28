@@ -273,12 +273,10 @@ class GreedyAlgorithm(IRmodel):
         docsList = [docId for (docId, score) in baseRanking]
         # Ordered documents
         result = []
-        print("Doc score size", len(docsScores))
+        #print("Doc score", docsScores)
 
         for i in range(len(docsList)):
-            max_sim2 = -float("inf")
-            max_value = -float("inf")
-            du_selected = None
+            #print("Document number", i+1)
             if i == 0:
                 du = max(docsScores, key=docsScores.get)
                 result.append(du)
@@ -287,18 +285,28 @@ class GreedyAlgorithm(IRmodel):
                 # Remove document from the list of documents
                 docsList.remove(du)
             else:
+                max_value = -float("inf")
+                du_selected = None
                 for du in docsScores.keys():
+                    #print("Document in the disctionnary score", du)
+                    max_sim2 = -float("inf")
                     for doc_returned in result:
                         score = self.score(du, doc_returned)
+                        #print("Document already returned", doc_returned, "With score", score)
                         if score > max_sim2:
                             max_sim2 = score
                     value_score = self.alpha * docsScores[du] + (self.alpha - 1) * max_sim2
+                    #print("Value", value_score )
                     if value_score > max_value:
+                        max_value = value_score
                         du_selected = du
+                #print("Document selected", du_selected)
+                result.append(du_selected)
                 # Remove document from the scores dictionnary
                 del docsScores[du_selected]
                 # Remove document from the list of documents
                 docsList.remove(du_selected)
+                #print("RESULT", result)
 
         return result
 
