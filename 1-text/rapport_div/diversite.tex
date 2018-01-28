@@ -2,7 +2,7 @@
 % Packages & config %----------------------------------------------------------------------------------------
 
 \documentclass{article}
-\usepackage[utf8]{inputenc}
+\usepackage[utf8x]{inputenc}
 \usepackage[french]{babel}
 \usepackage[T1]{fontenc}
 \usepackage{amsmath}
@@ -145,18 +145,81 @@ $Sim_{1}$ et $Sim_{2}$ sont des mesures de similarités classiques, par exemple 
 
 \newpage
 \section{Expérimentations}
-\paragraph{Présentation des données easyCLEF08}
+\subsection{Présentation des données \textit{easyCLEF08}}
+Nous avons utilisé un jeu de données appelé \textit{easyCLEF08} provenant du corpus IAPR TC-12 \cite{grubinger06} et de la vérité terrain de ce corpus \cite{arni08}. 
 
-\paragraph{Présentation des mesures d'évaluation}
+Ces données consistent en un ensemble de 2256 photos décrites par du texte, et un ensemble de 39 requêtes textuelles, ainsi qu'un ensemble de <<pertinences>>, des triplets $(q,d,t)$ où $q$ est la requête, $d$ est un document pertinent pour cette requête, et $t$ est le numéro du sous-thème de la requête $q$ auquel $d$ appartient.
+Par exemple la requête n°2 cherche des églises avec au moins deux tours et a pour photos pertinentes des photos de Moscou (sous-thème n°1), de St-Petersburg (sous-thème n°2), etc.
 
-\paragraph{Résultats}
-Parler de la baseline
-[Ne pas oublier d'étudier les paramètres]
+\subsection{Présentation des mesures d'évaluation}
+Comme en RI classique nous utilisons la précision pour évaluer la pertinence de notre SRI. Nous considérons qu'un utilisateur regarde environ 40 résultats pour une requête, c'est pourquoi nous utiliserons la métrique <<précision à 40 résultats>>, $P@40$, qui compte la proportion de documents pertinents parmi les 40 premiers résultats.
+
+Pour mesurer la diversité des réponses renvoyées, nous utilisons une mesure appelée Cluster Recall à $n$ documents, $CR@n$, qui mesure la fraction de sous-thèmes couverts par les $n$ premiers résultats (ici $n=40$).
+
+
+\subsection{Résultats du clustering post retrieval}
+Nous avons évalué nos méthodes de clustering post retrieval sur un ensemble de 10 requêtes aléatoires, et nous avons comparé nos résultats à ceux de la baseline, ici un modèle vectoriel qui utilise les coefficients $tfidf$.
+
+Nous comparons la précision à 40 documents de la baseline ("Base prec.") à la précision de notre clustering post retrieval ("PRC prec.") et nous comparons de même les Cluster Recall à 40 documents ("Base CR" et "PRC CR").
+
+Ici nos deux modèles pour notre SRI effectuent un clustering sur les 200 meilleurs documents pour une requête, nous avons effectué plusieurs tests et c'est le meilleur compromis entre rapidité d'exécution et résultats.
+
+\begin{figure}[H]
+\begin{tabular}{l*{6}{c}r}
+Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
+\hline
+   18 &    0.42   &   0.42   &   0.00 &  0.56  & 0.56  &   0.00 \\
+   28 &    0.47   &   0.47   &   0.00 &  1.00  & 1.00  &   0.00 \\
+   60 &    0.86   &   0.55   &  -0.31 &  1.00  & 1.00  &   0.00 \\
+   16 &    0.62   &   0.57   &  -0.05 &  0.52  & 0.61  &   0.09 \\
+   34 &    0.50   &   0.47   &  -0.03 &  0.57  & 0.57  &   0.00 \\
+   39 &    0.57   &   0.42   &  -0.15 &  0.75  & 0.75  &   0.00 \\
+   44 &    0.05   &   0.12   &   0.07 &  0.13  & 0.20  &   0.07 \\
+   10 &    0.40   &   0.33   &  -0.08 &  0.17  & 0.13  &  -0.04 \\
+   52 &    0.69   &   0.55   &  -0.14 &  0.71  & 0.71  &   0.00 \\
+   13 &    0.28   &   0.38   &   0.10 &  0.44  & 0.56  &   0.11 \\
+\hline
+Mean  &    0.49   &   0.43   &  -0.06 &  0.59  & 0.61  &   0.02 \\
+\end{tabular}
+\caption{Résultats K-Means}
+\end{figure}
+
+\begin{figure}[H]
+\begin{tabular}{l*{6}{c}r}
+Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
+\hline
+   18 &    0.42   &   0.42   &   0.00 &  0.56  & 0.56  &   0.00 \\
+   28 &    0.47   &   0.47   &   0.00 &  1.00  & 1.00  &   0.00 \\
+   60 &    0.86   &   0.86   &   0.00 &  1.00  & 1.00  &   0.00 \\
+   16 &    0.62   &   0.68   &   0.05 &  0.52  & 0.57  &   0.04 \\
+   34 &    0.50   &   0.50   &   0.00 &  0.57  & 0.43  &  -0.14 \\
+   39 &    0.57   &   0.60   &   0.03 &  0.75  & 1.00  &   0.25 \\
+   44 &    0.05   &   0.05   &   0.00 &  0.13  & 0.07  &  -0.07 \\
+   10 &    0.40   &   0.40   &   0.00 &  0.17  & 0.17  &   0.00 \\
+   52 &    0.69   &   0.69   &   0.00 &  0.71  & 0.71  &   0.00 \\
+   13 &    0.28   &   0.25   &  -0.03 &  0.44  & 0.44  &   0.00 \\
+\hline
+Mean  &    0.49   &   0.49   &   0.00 &  0.59  & 0.59  &   0.01 \\
+\end{tabular}
+\caption{Résultats MeanShift}
+\end{figure}
+
+On voit que nos méthodes de clustering améliorent assez peu la baseline. En effet le clustering K-Means améliore le CR@40 de 2\% mais diminue la P@40 de 6\%, tandis que le clustering MeanShift améliore le CR@40 de 1\% et conserve la précision. 
+
+Par ailleurs comme les requêtes ne sont pas nombreuses (39 requêtes au total dans le dataset), il peut exister une grande variance parmi les résultats de notre SRI.
+
+Ces résultats peuvent s'expliquer par le fait que le modèle vectoriel avec les coefficients $tfidf$ est réputé être performant, ainsi il peut être difficile d'améliorer les résultats de ce modèle. C'est assez flagrant en regardant les résultats de la baseline : une précision de presque 1/2 et un CR@40 de 0,6, ce qui correspond à des bons résultats.
+
+Nous avons utilisé ici l'algorithme K-Means classique où le seul paramètre est le nombre de clusters, que nous faisons varier à chaque requête afin de trouver le meilleur partitionnement, donc notre modèle de clustering avec K-Means ne nécessitait pas d'étude particulière de paramètre.
+
+L'algorithme MeanShift dépend lui aussi d'un paramètre "bande-passante" pour estimer la densité des échantillons, et on peut aussi estimer ce paramètre en étudiant les données, afin d'obtenir le meilleur clustering, c'est ce que nous avons fait.
+
+L'avantage du MeanShift est qu'il est beaucoup plus rapide que K-Means. En effet lorsque nous utilisons un clustering pour répondre à une requête, le SRI récupère 200 documents, les partitionne et renvoie un nouveau classement de 40 documents.
+Le K-Means teste différents partitionnements, de 2 à 200 partitions, ce qui prend beaucoup de temps (de l'ordre de 4 secondes pour obtenir un nouveau classement), comparé au MeanShift qui étudie d'abord les données et qui effectue ensuite un clustering (de l'ordre de 200 ms).
 
 \section{Conclusion}
 
 [Perspectives et ouvertures]
-\cite{lamport94}
 
 \begin{thebibliography}{9}
 \bibitem{rousseeuw87}
@@ -169,6 +232,13 @@ Peter J.Rousseeuw
 \bibitem{zhai03}
 \textit{Beyond Independent Relevance: Methods and EvaluationMetrics for Subtopic Retrieval}, Zhai, Cohen, Lafferty
 
+\bibitem{grubinger06}
+\textit{ImageCLEF 2006
+Text and/or Content-Based Cross Language Image Retrieval}, Grubinger et al.
+
+\bibitem{arni08}
+\textit{Overview of the ImageCLEFphoto 2008  
+Photographic Retrieval Task}, Arni et al.
 \end{thebibliography}
 
 

@@ -54,7 +54,7 @@ class KMeansClustering(Clustering):
     
 class MeanShiftClustering(Clustering):
     def cluster(self, X, Nclusters=None, maxClusters=None, verbose=False):
-        meanshift = MeanShift()
+        meanshift = MeanShift(bandwidth=1.5)
         meanshift.fit(X)
         labels = meanshift.labels_
         clustering = []

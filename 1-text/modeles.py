@@ -201,14 +201,16 @@ class PRClustering(IRmodel):
         X = weighter.constructMatrix(docsList)
         
         # compute a clustering of these docs/vectors
-        clustering = self.cluster.cluster(X, Nclusters=Nclusters, maxClusters=maxClusters)
+        baseClustering = self.cluster.cluster(X, Nclusters=Nclusters, maxClusters=maxClusters)
+        clustering = []
         # put the original docs ID in the clustering instead of docs position
-        for i, cluster in enumerate(clustering):
-            clustering[i] = [docsList[d] for d in cluster]
+        for cluster in baseClustering:
+            if len(cluster) > 0:
+                clustering.append([docsList[d] for d in cluster])
         
         if verbose:
             print("\nBase ranking:", docsList)
-            print("\nClustering (%d clusters):" % i)
+            print("\nClustering (%d clusters):" % (len(clustering)))
             print(clustering)
         
         # return a ranking given a cluster/doc orderings
