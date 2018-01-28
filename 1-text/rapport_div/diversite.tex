@@ -14,6 +14,7 @@
 \usepackage{cmap}
 \usepackage{graphicx} 
 \usepackage{bmpsize}
+\usepackage[caption=false]{subfig}
 
 %\usepackage{multicol}
 %\usepackage[margin=2cm]{geometry}
@@ -217,6 +218,47 @@ L'algorithme MeanShift dépend lui aussi d'un paramètre "bande-passante" pour e
 L'avantage du MeanShift est qu'il est beaucoup plus rapide que K-Means. En effet lorsque nous utilisons un clustering pour répondre à une requête, le SRI récupère 200 documents, les partitionne et renvoie un nouveau classement de 40 documents.
 Le K-Means teste différents partitionnements, de 2 à 200 partitions, ce qui prend beaucoup de temps (de l'ordre de 4 secondes pour obtenir un nouveau classement), comparé au MeanShift qui étudie d'abord les données et qui effectue ensuite un clustering (de l'ordre de 200 ms).
 
+\subsection{Résultats de l'algorithme glouton}
+Nous avons évalué notre algorithme glouton MMR de la même manière que nous l'avons fait pour le clustering post retrieval. Ainsi on peut comparer les résulats à la fois par rapport à la baseline mais également par rapport aux autres aglorithmes de diversité. \\
+Ici notre modèle effectue une recherche gourmande sur les 200 meilleurs documents pour chaque requête.\\
+Voici l'évolution des precision et clusters recall à 40 documents en moyenne sur les 10 requêtes d'évaluation.
+
+\begin{figure}[htp]
+ \textbf{ Évolution de CR@40 et PR@40 en moyenne sur les 10 requêtes pour $\alpha$ variant de 0 et 1 }
+  \centering
+  \subfloat[CR@40]{\label{fig:première}\includegraphics[height=5cm]{recall}}
+  ~
+  \subfloat[PR@40]{\label{fig:deuxième}\includegraphics[height=5cm]{precision}}
+\end{figure} 
+
+Nous avons évalué notre algorithme pour différentes valeur de $\alpha$ allant de 0 à 1. Nous avons des résultats similaires en terme de CR@40 pour plusieurs valeurs de $\alpha$, aussi nous choisissons de prendre la valeur qui maximise à la fois le CR@40 et le PR@40. La valeur optimale est $\alpha = 0.8$. Voici les résultats obtenus.
+
+\begin{figure}[H]
+\begin{tabular}{l*{6}{c}r}
+Query \# & Base prec. & PRG prec. & Delta  & Base CR & PRG CR & Delta\\ 
+\hline
+   18 &    0.42   &   0.40   &   -0.02 &  0.56  & 0.88  &    0.32 \\
+   28 &    0.47   &   0.55   &    0.08 &  1.00  & 1.00  &    0.00 \\
+   60 &    0.86   &   0.79   &   -0.07 &  1.00  & 1.00  &    0.00 \\
+   16 &    0.62   &   0.45   &   -0.27 &  0.52  & 0.52  &    0.00 \\
+   34 &    0.50   &   0.37   &   -0.13 &  0.57  & 0.57  &    0.00 \\
+   39 &    0.57   &   0.3   &    -0.27 &  0.75  & 0.75  &    0.00 \\
+   44 &    0.05   &   0.1   &     0.05 &  0.13  & 0.20  &    0.07 \\
+   10 &    0.40   &   0.3   &    -0.1 &  0.17  & 0.30  &     0.13 \\
+   52 &    0.69   &   0.25   &   -0.44 &  0.71  & 0.57  &   -0.14 \\
+   13 &    0.28   &   0.37   &    0.09 &  0.44  & 0.86  &    0.42 \\
+\hline
+Mean  &    0.49   &   0.39   &   -0.10 &  0.59  & 0.67  &   0.08 \\
+\end{tabular}
+\caption{Résultats MMR}
+\end{figure}
+
+On voit que notre algorithme glouton améliore bien la baseline en terme de cluster recall. En effet on constate que le MMR améliore le CR@40 de 8\% par rapport à la baseline.\\
+Ce gain en terme de diversité est accompagné d'un coût en terme de pertinence, en effet la PR@40 perd 10\% par rapport à la baseline. \\
+La remarque faite précédemment sur la variance des résultats du SRI est toujours valable.\\
+
+L'avantage de l'algorithme glouton par rapport à l'algorithme à base de partitionnement tient au fait qu'il parvient à améliorer la diversité des documents renvoyés et parvient à mieux 'capter' les sous-thèmes des requêtes. 
+Cependant cet avantage s'accompagne de deux inconvénients qui sont la diminution des performances en précision et de temps de calculs plus longs.
 \section{Conclusion}
 
 [Perspectives et ouvertures]
