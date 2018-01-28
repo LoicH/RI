@@ -98,7 +98,9 @@ Nous faisons l'hypothèse qu'un utilisateur va regarder au maximum 40 photos lor
 \subsection{Clustering post-retrieval}
 \paragraph{K-Means}
 
-Dans un premier temps nous allons développer une solution basée sur des méthodes de partitionnement. Notre méthode récupère une première sélection de documents qui peuvent répondre à une requête grâce à un modèle simple. Ici nous utilisons un modèle vectoriel qui associe à chaque mot son score \textit{tf-idf}. Dans ce modèle un document est proche d'une requête s'ils contiennent les mêmes mots, notamment s'ils contiennent des mots qui apparaissent peu ailleurs.
+Dans un premier temps nous allons développer une solution basée sur des méthodes de partitionnement. Notre méthode récupère une première sélection de documents qui peuvent répondre à une requête grâce à un modèle simple. 
+
+Ici nous utilisons un modèle vectoriel qui associe à chaque document/requête un vecteur des coefficients $tfidf$ pour chaque mot qu'il contient. Nous avons au préalable enlevé les mots-creux des descriptions et nous avons effectué une \textit{stemmatization} de ces descriptions. Dans ce modèle un document est proche d'une requête s'ils contiennent les mêmes mots, notamment s'ils contiennent des mots qui apparaissent peu ailleurs.
 
 Ensuite notre SRI réalisera un clustering des premiers documents renvoyés par notre modèle. Nous utilisons ici l'algorithme des k-moyennes. Nous faisons varier le nombre de clusters pour trouver le meilleur partitionnement, on propose d'évaluer la qualité de notre partitionnement grâce au coefficient silhouette \cite{rousseeuw87}. 
 Nous avons choisi de conserver seulement les 200 premiers documents renvoyés par le modèle de base pour effectuer notre partitionnement car cela réalisait un bon compromis entre pertinence des résultats et rapidité de la réponse, pour avoir 40 résultats.
@@ -164,9 +166,20 @@ Nous comparons la précision à 40 documents de la baseline ("Base prec.") à la
 
 Ici nos deux modèles pour notre SRI effectuent un clustering sur les 200 meilleurs documents pour une requête, nous avons effectué plusieurs tests et c'est le meilleur compromis entre rapidité d'exécution et résultats.
 
+Nous avons testé notre modèle sur quelques requêtes avant d'évaluer globalement ses performances, et voici l'évolution de la P@40 et du CR@40 sur une requête, avec le clustering K-Means, en fonction du nombre de clusters.
+
+\begin{figure}[H]
+\includegraphics[scale=0.4]{img/qry11.png}
+\caption{Résultats du clustering sur une requête}
+\end{figure}
+
+On voit que pour un cluster, on retrouve le résultat de la baseline, ce qui permet d'éliminer une source de bugs. 
+
+Nous avons ensuite testé nos modèles sur une série de 10 requêtes tirées aléatoirement parmi l'ensemble disponible, afin d'évaluer les performances de notre SRI.
+
 \begin{figure}[H]
 \begin{tabular}{l*{6}{c}r}
-Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
+N° requête & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
 \hline
    18 &    0.42   &   0.42   &   0.00 &  0.56  & 0.56  &   0.00 \\
    28 &    0.47   &   0.47   &   0.00 &  1.00  & 1.00  &   0.00 \\
@@ -179,14 +192,14 @@ Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\
    52 &    0.69   &   0.55   &  -0.14 &  0.71  & 0.71  &   0.00 \\
    13 &    0.28   &   0.38   &   0.10 &  0.44  & 0.56  &   0.11 \\
 \hline
-Mean  &    0.49   &   0.43   &  -0.06 &  0.59  & 0.61  &   0.02 \\
+Moyenne  &    0.49   &   0.43   &  -0.06 &  0.59  & 0.61  &   0.02 \\
 \end{tabular}
 \caption{Résultats K-Means}
 \end{figure}
 
 \begin{figure}[H]
 \begin{tabular}{l*{6}{c}r}
-Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
+N° requête & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\ 
 \hline
    18 &    0.42   &   0.42   &   0.00 &  0.56  & 0.56  &   0.00 \\
    28 &    0.47   &   0.47   &   0.00 &  1.00  & 1.00  &   0.00 \\
@@ -199,7 +212,7 @@ Query \# & Base prec. & PRC prec. & Delta  & Base CR & PRC CR & Delta\\
    52 &    0.69   &   0.69   &   0.00 &  0.71  & 0.71  &   0.00 \\
    13 &    0.28   &   0.25   &  -0.03 &  0.44  & 0.44  &   0.00 \\
 \hline
-Mean  &    0.49   &   0.49   &   0.00 &  0.59  & 0.59  &   0.01 \\
+Moyenne  &    0.49   &   0.49   &   0.00 &  0.59  & 0.59  &   0.01 \\
 \end{tabular}
 \caption{Résultats MeanShift}
 \end{figure}
@@ -219,7 +232,10 @@ Le K-Means teste différents partitionnements, de 2 à 200 partitions, ce qui pr
 
 \section{Conclusion}
 
-[Perspectives et ouvertures]
+Nous avons vu que sur le corpus easyCLEF08 nos modèles de clustering n'étaient pas beaucoup plus performants que le modèle de base vectoriel avec $tfidf$.
+
+Nous avons remarqué que beaucoup de requêtes contenaient non seulement la requête en elle-même (<< church with more than two towers >>), mais aussi une description plus détaillées des résultats attendus : << Relevant images will show a church, cathedral or a mosque with three or more towers... >> ou pour une autre requête << Non-religious statues like war memorials or monuments are not relevant. >>. Cela pose un problème car notre modèle de base pour le clustering suppose que chaque mot de la requête est << voulu >>, notre modèle ne comprend pas la négation, il va essayer de trouver des documents qui contiennent les mêmes mots que la requête, même si cela va à l'encontre de ce que l'utilisateur voulait. 
+Ainsi il faudrait utiliser un modèle plus subtil qui comprendrait ce que veut un utilisateur et ce qu'il ne veut pas. Cela est possible en utilisant d'autres modèles du traitement automatique du langage.
 
 \begin{thebibliography}{9}
 \bibitem{rousseeuw87}
