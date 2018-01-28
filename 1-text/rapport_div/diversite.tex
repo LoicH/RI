@@ -14,9 +14,10 @@
 \usepackage{cmap}
 \usepackage{graphicx} 
 \usepackage{bmpsize}
+\usepackage[caption=false]{subfig}
 
 %\usepackage{multicol}
-%\usepackage[margin=2cm]{geometry}
+\usepackage[margin=3cm]{geometry}
 %----------------------------------------------------------------------------------------
 %	Infos du doc
 %----------------------------------------------------------------------------------------
@@ -103,9 +104,9 @@ Dans un premier temps nous allons développer une solution basée sur des métho
 Ici nous utilisons un modèle vectoriel qui associe à chaque document/requête un vecteur des coefficients $tfidf$ pour chaque mot qu'il contient. Nous avons au préalable enlevé les mots-creux des descriptions et nous avons effectué une \textit{stemmatization} de ces descriptions. Dans ce modèle un document est proche d'une requête s'ils contiennent les mêmes mots, notamment s'ils contiennent des mots qui apparaissent peu ailleurs.
 
 Ensuite notre SRI réalisera un clustering des premiers documents renvoyés par notre modèle. Nous utilisons ici l'algorithme des k-moyennes. Nous faisons varier le nombre de clusters pour trouver le meilleur partitionnement, on propose d'évaluer la qualité de notre partitionnement grâce au coefficient silhouette \cite{rousseeuw87}. 
-Nous avons choisi de conserver seulement les 200 premiers documents renvoyés par le modèle de base pour effectuer notre partitionnement car cela réalisait un bon compromis entre pertinence des résultats et rapidité de la réponse, pour avoir 40 résultats.
+Nous avons choisi de conserver seulement les 200 premiers documents renvoyés par le modèle de base pour effectuer notre partitionnement car cela réalisait un bon compromis entre pertinence des résultats et rapidité de la réponse, pour avoir 40 résultats. Nous avons effectué plusieurs tests et prendre moins de 200 documents conduisait à une dégradation des résultats, tandis qu'en prendre plus rendait nos modèles trop lents pour être utilisables.
 
-Finalement notre SRI trie les clusters selon leur proximité à la requête, et il trie les documents dans les clusters selon leur proximité à la requête. Le SRI renvoie les documents en alternant parmi les différents clusters. 
+Nos modèles trient les clusters selon leur proximité à la requête, et de même trient les documents selon leur proximité à la requête. Il existe d'autres manières d'ordonner les clusters et les documents, mais nous avons retenu cette combinaison car elle est performante et rapide à calculer. Le SRI renvoie les documents en alternant parmi les différents clusters. 
 
 Nous allons ensuite essayer de confirmer ou d'infirmer ces choix lors de notre démarche expérimentale pour voir si notre heuristique est performante. 
 
@@ -143,39 +144,36 @@ On utilisera comme fonction $value$ la \textit{Maximal Marginal Relevance} :
 $$value_{MMR}(d_u;q,d_1,...,d_{i-1}) = \underbrace{\alpha Sim_{1}(d_u,q)}_{\text{pertinence}} - \underbrace{(1-\alpha)\max\limits_{j < i} Sim_{2}(d_u, d_j)}_{\text{divserité}}$$
 
 Où :\\
-$Sim_{1}$ et $Sim_{2}$ sont des mesures de similarités classiques, par exemple la similarité cosine (un document et une requête sont représentés par un vecteur tf-idf de termes).
+$Sim_{1}$ et $Sim_{2}$ sont des mesures de similarités classiques, nous utiliserons la similarité cosine : un document et une requête sont représentés par un vecteur tf-idf de termes, et nous effectuons le produit scalaire entre un document et une requête pour évaluer leur similarité.
 
-\newpage
 \section{Expérimentations}
 \subsection{Présentation des données \textit{easyCLEF08}}
 Nous avons utilisé un jeu de données appelé \textit{easyCLEF08} provenant du corpus IAPR TC-12 \cite{grubinger06} et de la vérité terrain de ce corpus \cite{arni08}. 
 
-Ces données consistent en un ensemble de 2256 photos décrites par du texte, et un ensemble de 39 requêtes textuelles, ainsi qu'un ensemble de <<pertinences>>, des triplets $(q,d,t)$ où $q$ est la requête, $d$ est un document pertinent pour cette requête, et $t$ est le numéro du sous-thème de la requête $q$ auquel $d$ appartient.
+Ces données consistent en un ensemble de 2256 photos décrites par du texte, et un ensemble de 39 requêtes textuelles, ainsi qu'un ensemble de << pertinences >>, des triplets $(q,d,t)$ où $q$ est la requête, $d$ est un document pertinent pour cette requête, et $t$ est le numéro du sous-thème de la requête $q$ auquel $d$ appartient.
 Par exemple la requête n°2 cherche des églises avec au moins deux tours et a pour photos pertinentes des photos de Moscou (sous-thème n°1), de St-Petersburg (sous-thème n°2), etc.
 
 \subsection{Présentation des mesures d'évaluation}
-Comme en RI classique nous utilisons la précision pour évaluer la pertinence de notre SRI. Nous considérons qu'un utilisateur regarde environ 40 résultats pour une requête, c'est pourquoi nous utiliserons la métrique <<précision à 40 résultats>>, $P@40$, qui compte la proportion de documents pertinents parmi les 40 premiers résultats.
+Comme en RI classique nous utilisons la précision pour évaluer la pertinence de notre SRI. Nous considérons qu'un utilisateur regarde environ 40 résultats pour une requête, c'est pourquoi nous utiliserons la métrique << précision à 40 résultats >>, $P@40$, qui compte la proportion de documents pertinents parmi les 40 premiers résultats.
 
 Pour mesurer la diversité des réponses renvoyées, nous utilisons une mesure appelée Cluster Recall à $n$ documents, $CR@n$, qui mesure la fraction de sous-thèmes couverts par les $n$ premiers résultats (ici $n=40$).
 
 
 \subsection{Résultats du clustering post retrieval}
-Nous avons évalué nos méthodes de clustering post retrieval sur un ensemble de 10 requêtes aléatoires, et nous avons comparé nos résultats à ceux de la baseline, ici un modèle vectoriel qui utilise les coefficients $tfidf$.
 
-Nous comparons la précision à 40 documents de la baseline ("Base prec.") à la précision de notre clustering post retrieval ("PRC prec.") et nous comparons de même les Cluster Recall à 40 documents ("Base CR" et "PRC CR").
-
-Ici nos deux modèles pour notre SRI effectuent un clustering sur les 200 meilleurs documents pour une requête, nous avons effectué plusieurs tests et c'est le meilleur compromis entre rapidité d'exécution et résultats.
-
-Nous avons testé notre modèle sur quelques requêtes avant d'évaluer globalement ses performances, et voici l'évolution de la P@40 et du CR@40 sur une requête, avec le clustering K-Means, en fonction du nombre de clusters.
+Nous avons testé notre modèle sur quelques requêtes avant d'évaluer globalement ses performances, et voici l'évolution de la P@40 et du CR@40 sur une requête, avec le clustering K-Means, en fonction du nombre de clusters. Nous avons rajouté les performances du modèle de base, ici un modèle vectoriel qui utilise les coefficients $tfidf$.
 
 \begin{figure}[H]
 \includegraphics[scale=0.4]{img/qry11.png}
 \caption{Résultats du clustering sur une requête}
 \end{figure}
 
-On voit que pour un cluster, on retrouve le résultat de la baseline, ce qui permet d'éliminer une source de bugs. 
+On voit que pour un cluster, on retrouve le résultat de la baseline, ce qui est le comportement attendu. 
 
-Nous avons ensuite testé nos modèles sur une série de 10 requêtes tirées aléatoirement parmi l'ensemble disponible, afin d'évaluer les performances de notre SRI.
+Nous avons ensuite évalué nos méthodes de clustering post retrieval sur un ensemble de 10 requêtes aléatoires, et nous avons comparé nos résultats à ceux de la baseline.
+
+Nous comparons la précision à 40 documents de la baseline ("Base prec.") à la précision de notre clustering post retrieval ("PRC prec.") et nous comparons de même les Cluster Recall à 40 documents ("Base CR" et "PRC CR").
+
 
 \begin{figure}[H]
 \begin{tabular}{l*{6}{c}r}
@@ -230,9 +228,53 @@ L'algorithme MeanShift dépend lui aussi d'un paramètre "bande-passante" pour e
 L'avantage du MeanShift est qu'il est beaucoup plus rapide que K-Means. En effet lorsque nous utilisons un clustering pour répondre à une requête, le SRI récupère 200 documents, les partitionne et renvoie un nouveau classement de 40 documents.
 Le K-Means teste différents partitionnements, de 2 à 200 partitions, ce qui prend beaucoup de temps (de l'ordre de 4 secondes pour obtenir un nouveau classement), comparé au MeanShift qui étudie d'abord les données et qui effectue ensuite un clustering (de l'ordre de 200 ms).
 
+\subsection{Résultats de l'algorithme glouton}
+Nous avons évalué notre algorithme glouton MMR de la même manière que nous l'avons fait pour le clustering post retrieval. Ainsi on peut comparer les résulats à la fois par rapport à la baseline mais également par rapport aux autres aglorithmes de diversité. \\
+Ici notre modèle effectue une recherche gourmande sur les 200 meilleurs documents pour chaque requête.\\
+Voici l'évolution des précisions et clusters recall à 40 documents en moyenne sur les 10 requêtes d'évaluation.
+
+\begin{figure}[htp]
+ \caption{ Évolution de CR@40 et PR@40 en moyenne sur les 10 requêtes pour $\alpha$ variant de 0 à 1 }
+  \centering
+  \subfloat[CR@40]{\label{fig:première}\includegraphics[height=5cm]{recall}}
+  ~
+  \subfloat[PR@40]{\label{fig:deuxième}\includegraphics[height=5cm]{precision}}
+\end{figure} 
+
+Nous avons évalué notre algorithme pour différentes valeurs de $\alpha$ allant de 0 à 1. Nous avons des résultats similaires en termes de CR@40 pour plusieurs valeurs de $\alpha$, aussi nous choisissons de prendre la valeur qui maximise à la fois le CR@40 et le PR@40. La valeur optimale est $\alpha = 0.8$. Voici les résultats obtenus.
+
+\begin{figure}[H]
+\begin{tabular}{l*{6}{c}r}
+N° requête & Base prec. & PRG prec. & Delta  & Base CR & PRG CR & Delta\\ 
+\hline
+   18 &    0.42   &   0.40   &   -0.02 &  0.56  & 0.88  &    0.32 \\
+   28 &    0.47   &   0.55   &    0.08 &  1.00  & 1.00  &    0.00 \\
+   60 &    0.86   &   0.79   &   -0.07 &  1.00  & 1.00  &    0.00 \\
+   16 &    0.62   &   0.45   &   -0.27 &  0.52  & 0.52  &    0.00 \\
+   34 &    0.50   &   0.37   &   -0.13 &  0.57  & 0.57  &    0.00 \\
+   39 &    0.57   &   0.3   &    -0.27 &  0.75  & 0.75  &    0.00 \\
+   44 &    0.05   &   0.1   &     0.05 &  0.13  & 0.20  &    0.07 \\
+   10 &    0.40   &   0.3   &    -0.1 &  0.17  & 0.30  &     0.13 \\
+   52 &    0.69   &   0.25   &   -0.44 &  0.71  & 0.57  &   -0.14 \\
+   13 &    0.28   &   0.37   &    0.09 &  0.44  & 0.86  &    0.42 \\
+\hline
+Moyenne  &    0.49   &   0.39   &   -0.10 &  0.59  & 0.67  &   0.08 \\
+\end{tabular}
+\caption{Résultats MMR}
+\end{figure}
+
+On voit que notre algorithme glouton améliore bien la baseline en termes de cluster recall. En effet on constate que le MMR améliore le CR@40 de 8\% par rapport à la baseline.\\
+Ce gain en termes de diversité est accompagné d'un coût en termes de pertinence, en effet la PR@40 perd 10\% par rapport à la baseline. \\
+La remarque faite précédemment sur la variance des résultats du SRI est toujours valable.\\
+
+L'avantage de l'algorithme glouton par rapport à l'algorithme à base de partitionnement tient au fait qu'il est assez simple à comprendre et à analyser, de plus il améliore la diversité des documents renvoyés et << capte >> mieux les sous-thèmes des requêtes. 
+
+Cependant on perd en précision et le temps de calcul n'est pas idéal, on retrouve des temps proches du K-Means, de l'ordre de 4 secondes pour une requête.
 \section{Conclusion}
 
 Nous avons vu que sur le corpus easyCLEF08 nos modèles de clustering n'étaient pas beaucoup plus performants que le modèle de base vectoriel avec $tfidf$.
+
+Cependant, l'algorithme glouton est une heuristique performante pour notre SRI et permet d'augmenter la diversité par rapport à un modèle simple.
 
 Nous avons remarqué que beaucoup de requêtes contenaient non seulement la requête en elle-même (<< church with more than two towers >>), mais aussi une description plus détaillées des résultats attendus : << Relevant images will show a church, cathedral or a mosque with three or more towers... >> ou pour une autre requête << Non-religious statues like war memorials or monuments are not relevant. >>. Cela pose un problème car notre modèle de base pour le clustering suppose que chaque mot de la requête est << voulu >>, notre modèle ne comprend pas la négation, il va essayer de trouver des documents qui contiennent les mêmes mots que la requête, même si cela va à l'encontre de ce que l'utilisateur voulait. 
 Ainsi il faudrait utiliser un modèle plus subtil qui comprendrait ce que veut un utilisateur et ce qu'il ne veut pas. Cela est possible en utilisant d'autres modèles du traitement automatique du langage.
