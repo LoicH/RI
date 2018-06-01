@@ -28,6 +28,8 @@ Find the most relevant images with semantic analysis (for a query such as "tree 
 Using diversity to cover all the topics for a query. This search engine avoids redundancy and doesn't return the same image. It returns various diverse images that suit the need of the user. 
 
 **Example for the query "strike"**
+
+
 ![stike](https://www.massnurses.org/files/WashingtonHospitalStrike.jpg)
 ![bowling strike](http://above180.com/wp-content/uploads/2017/08/bowling-good.jpg)
 ![air strike](https://timesofislamabad.com/digital_images/medium/2018-02-18/haqqani-network-militants-killed-in-an-air-strike-in-afghanistan-1518954843-6156.JPG)
