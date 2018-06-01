@@ -1,4 +1,5 @@
 
+
 # Information Retrieval course
 ## at Université Pierre et Marie Curie (Paris VI)
 
@@ -20,8 +21,10 @@ Article results:
 ### 2. An image search engine
 Find the most relevant images with semantic analysis (for a query such as "tree frog", it's better to return images of Wood Frogs than images of guitars).
 
-![Tree frog](https://proxy.duckduckgo.com/iu/?u=http://4.bp.blogspot.com/-59vl8F0D8lM/TlOjGTaCM9I/AAAAAAAAAcw/QdQPmBIGaNE/s1600/tree_frog_1.jpg&f=1)
-![Wood frog](https://proxy.duckduckgo.com/iu/?u=https://nature.mdc.mo.gov/sites/default/files/styles/centered_full/public/media/images/2010/04/wood_frog1.jpg?itok=nBR5BFG8&f=1)
+<img src="http://4.bp.blogspot.com/-59vl8F0D8lM/TlOjGTaCM9I/AAAAAAAAAcw/QdQPmBIGaNE/s1600/tree_frog_1.jpg" align="left" height="200"> 
+
+<img src="https://nature.mdc.mo.gov/sites/default/files/styles/centered_full/public/media/images/2010/04/wood_frog1.jpg" align="left" height="200">
+<br>
 
 
 ### 3.  A diverse text search engine
