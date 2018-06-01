@@ -21,9 +21,14 @@ Article results:
 ### 2. An image search engine
 Find the most relevant images with semantic analysis (for a query such as "tree frog", it's better to return images of Wood Frogs than images of guitars).
 
-![](http://4.bp.blogspot.com/-59vl8F0D8lM/TlOjGTaCM9I/AAAAAAAAAcw/QdQPmBIGaNE/s1600/tree_frog_1.jpg)<!-- .element height="50"-->
-
-![](https://nature.mdc.mo.gov/sites/default/files/styles/centered_full/public/media/images/2010/04/wood_frog1.jpg | width=50)
+![tree frog](http://www.reptilesncritters.com/images/regular/red-eye-tree-frog.jpg)
+![wood frog](https://caroliniancanada.ca/sites/default/files/styles/gwgw_guide_article_teaser/public/User/General/in-the-zone/Wood%20frog-%28c%29-creighton359-iStock.jpg?itok=n7iNhdn7)
 
 ### 3.  A diverse text search engine
 Using diversity to cover all the topics for a query. This search engine avoids redundancy and doesn't return the same image. It returns various diverse images that suit the need of the user. 
+
+**Example for the query "strike"**
+![stike](https://www.massnurses.org/files/WashingtonHospitalStrike.jpg)
+![bowling strike](http://above180.com/wp-content/uploads/2017/08/bowling-good.jpg)
+![air strike](https://timesofislamabad.com/digital_images/medium/2018-02-18/haqqani-network-militants-killed-in-an-air-strike-in-afghanistan-1518954843-6156.JPG)
+
