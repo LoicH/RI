@@ -8,11 +8,12 @@ This repo hosts the various search engines developped for the "Information Retri
 It has 3 parts:
 
 ### 1. An accurate text search engine
-Find the most relevant scientific article (from 3000 in our database) for a query.
+This search engine finds the most relevant scientific article (from 3000 in our database) for a query.
 
 **Example**:
 Query: "Number-theoretic algorithms, especially involving prime number series,
-sieves, and Chinese Remainder theorem"
+sieves, and Chinese Remainder theorem". 
+
 Article results:
 - A Prime Number Generator Using The Treesort Principle
 - An Improved Algorithm to Produce Complex Primes
@@ -25,7 +26,7 @@ Find the most relevant images with semantic analysis (for a query such as "tree 
 ![wood frog](https://caroliniancanada.ca/sites/default/files/styles/gwgw_guide_article_teaser/public/User/General/in-the-zone/Wood%20frog-%28c%29-creighton359-iStock.jpg?itok=n7iNhdn7)
 
 ### 3.  A diverse text search engine
-Using diversity to cover all the topics for a query. This search engine avoids redundancy and doesn't return the same image. It returns various diverse images that suit the need of the user. 
+This search engine uses diversity methods to cover all the topics for a query. This search engine avoids redundancy and doesn't return the same image. It returns various diverse images that suit the need of the user. 
 
 **Example for the query "strike"**
 
